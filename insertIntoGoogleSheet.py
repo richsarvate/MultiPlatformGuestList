@@ -1,5 +1,6 @@
 import gspread
 from google.oauth2.service_account import Credentials
+import config
 
 GUEST_LIST_FOLDER_ID = "1dFTdMM97GwlnMvLpEfegyKUp39D6333i"
 
@@ -9,7 +10,7 @@ def insert_data_into_google_sheet(batch_data):
     credentials_file = "creds.json"  # Make sure the file path is correct
 
     # Authenticate using the credentials
-    creds = Credentials.from_service_account_file(credentials_file, scopes=['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive'])
+    creds = Credentials.from_service_account_file(config.GOOGLE_CREDS_FILE, scopes=['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive'])
     gc = gspread.Client(auth=creds)
 
     for show in batch_data:
