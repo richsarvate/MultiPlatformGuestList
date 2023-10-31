@@ -29,7 +29,7 @@ def insert_data_into_google_sheet(batch_data):
         except gspread.WorksheetNotFound:
             worksheet = sheet.add_worksheet(show_date, rows=100, cols=20)
 
-        headers = ["venue", "date", "email", "firstname", "lastname", "tickets", "source"]
+        headers = ["venue", "date", "email", "firstname", "lastname", "tickets", "source", "total:", "=SUM(F2:F100)"]
 
         if len(worksheet.get_all_values()) == 0:
             worksheet.append_row(headers, 1)
