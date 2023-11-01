@@ -1,6 +1,8 @@
 import gspread
 from google.oauth2.service_account import Credentials
 import config
+from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
+
 
 GUEST_LIST_FOLDER_ID = "1dFTdMM97GwlnMvLpEfegyKUp39D6333i"
 
@@ -29,7 +31,23 @@ def insert_data_into_google_sheet(batch_data):
         except gspread.WorksheetNotFound:
             worksheet = sheet.add_worksheet(show_date, rows=100, cols=20)
 
-        headers = ["venue", "date", "email", "firstname", "lastname", "tickets", "source", "total:", "=SUM(F2:F100)"]
+        headers = ["venue", "date", "email", "firstname", "lastname", "tickets", "source", "total:"]
+
+        if len(worksheet.get_all_values()) == 0:
+            worksheet.append_row(headers, 1)
+        else:
+            if worksheet.row_values(1) != headers:
+                # If the headers don't match, update the headers
+                worksheet.update('A1:H1', [headers])
+
+        sum_formula = '=SUM(F2:F100)'
+        try:
+            cell = worksheet.find('total:')
+            worksheet.update_cell(cell.row, cell.col + 1, sum_formula)
+        except APIError as e:
+            print(f"An error occurred: {e}")
+            print("Tried to add the sum formula but could not find a cell to add it to")
+            pass
 
         if len(worksheet.get_all_values()) == 0:
             worksheet.append_row(headers, 1)
