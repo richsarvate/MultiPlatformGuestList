@@ -7,4 +7,5 @@ SCRIPT_INTERVAL=10
 GMAIL_SCRIPT_INTERVAL_HOURS=1
 
 GOOGLE_CREDS_FILE="/home/ec2-user/GuestListScripts/creds.json"
-GMAIL_CREDS_FILE="/home/ec2-user/GuestListScripts/gmailapicred.json"
+GMAIL_CREDS_FILE="/home/ec2-user/GuestListScripts/gmailApiCreds.json"
+GMAIL_TOKEN_PATH="/home/ec2-user/GuestListScripts/token.pickle"

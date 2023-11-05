@@ -20,8 +20,10 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 def getEmails():
     creds = None
 
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
+    print("attempting to get goldstar will call list from gmail")
+
+    if os.path.exists(config.GMAIL_TOKEN_PATH):
+        with open(config.GMAIL_TOKEN_PATH, 'rb') as token:
             creds = pickle.load(token)
 
     if not creds or not creds.valid:
@@ -29,13 +31,13 @@ def getEmails():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'gmailApiCreds.json',
+                config.GMAIL_CREDS_FILE,
                 scopes=SCOPES,
                 redirect_uri='http://ec2-3-17-25-171.us-east-2.compute.amazonaws.com:8080/'
             )
             creds = flow.run_local_server(port=8080, host="ec2-3-17-25-171.us-east-2.compute.amazonaws.com", open_browser=False)
 
-        with open('token.pickle', 'wb') as token:
+        with open(config.GMAIL_TOKEN_PATH, 'wb') as token:
             pickle.dump(creds, token)
 
     service = build('gmail', 'v1', credentials=creds)
