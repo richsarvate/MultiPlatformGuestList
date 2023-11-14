@@ -2,9 +2,8 @@ import gspread
 from google.oauth2.service_account import Credentials
 import config
 from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
-
-
-GUEST_LIST_FOLDER_ID = "1dFTdMM97GwlnMvLpEfegyKUp39D6333i"
+from datetime import datetime 
+import re  # Add this line
 
 def insert_data_into_google_sheet(batch_data):
     
@@ -22,7 +21,7 @@ def insert_data_into_google_sheet(batch_data):
         try:
             sheet = gc.open(sheet_title)
         except gspread.exceptions.SpreadsheetNotFound:
-            sheet = gc.create(sheet_title, folder_id=GUEST_LIST_FOLDER_ID)
+            sheet = gc.create(sheet_title, folder_id=config.GUEST_LIST_FOLDER_ID)
 
         show_date = batch_data[show][0][1]
         print(show_date)
@@ -77,3 +76,4 @@ def insert_data_into_google_sheet(batch_data):
         except Exception as e:
             print(f"An error occurred while sorting: {e}")
             # Handle the error as needed
+

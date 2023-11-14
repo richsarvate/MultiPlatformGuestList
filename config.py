@@ -9,3 +9,5 @@ GMAIL_SCRIPT_INTERVAL_HOURS=1
 GOOGLE_CREDS_FILE="/home/ec2-user/GuestListScripts/creds.json"
 GMAIL_CREDS_FILE="/home/ec2-user/GuestListScripts/gmailApiCreds.json"
 GMAIL_TOKEN_PATH="/home/ec2-user/GuestListScripts/token.pickle"
+
+GUEST_LIST_FOLDER_ID = "1dFTdMM97GwlnMvLpEfegyKUp39D6333i"
