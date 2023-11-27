@@ -4,6 +4,7 @@ from googleapiclient.discovery import build
 import config
 import re
 from datetime import datetime
+from datetime import timedelta
 from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
 
 def parse_date_from_title(title):
@@ -42,6 +43,9 @@ def hide_old_worksheets(folder_id):
     # Get current date
     current_date = datetime.now().date()
 
+    # Calculating the date one day before the current date
+    one_day_old = current_date - timedelta(days=1)
+
     # Get all spreadsheets in the specified folder
     response = drive_service.files().list(q=f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.spreadsheet'",
                                           spaces='drive',
@@ -63,9 +67,9 @@ def hide_old_worksheets(folder_id):
                     print(f"worksheet date is {worksheet_date}")
                     # Parse the worksheet name as a date
                     # Check if the worksheet date is older than the current date
-                    if worksheet_date and worksheet_date < current_date:    
+                    if worksheet_date and worksheet_date < one_day_old:    
                         # Hide the worksheet
-                        print(f"this worksheet is older than the current date")
+                        print(f"this worksheet is older than one day")
 
                         requests = [{
                             "updateSheetProperties": {
