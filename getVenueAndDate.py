@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from dateutil import parser
 
 def get_venue(string):
   """Takes a string and checks if it contains Valencia, Stowaway, Palace, or Citizen. Whichever one matches first, the function returns that name. The function ignores uppercase or lowercase when matching.
@@ -12,7 +13,7 @@ def get_venue(string):
   """
 
   # Create a regular expression that matches the names, ignoring uppercase or lowercase.
-  name_regex = re.compile(r'(?i)(valencia|stowaway|palace|citizen)')
+  name_regex = re.compile(r'(?i)(valencia|stowaway|palace|citizen|church|barber)')
 
   # Find the first match in the input string.
   match = name_regex.search(string)
@@ -75,6 +76,35 @@ def extract_date(product_name):
       return None
 
 from datetime import datetime
+
+def convert_date_from_any_format(date_str):
+    if date_str == 'Date':
+        return None  # Skip headers or non-date entries
+
+    try:
+        # Using dateutil.parser to parse the date string
+        date_object = parser.parse(date_str)
+
+        day = date_object.day
+        month_names = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ]
+        month = date_object.month
+        month_name = month_names[month - 1]
+
+        day_of_week = date_object.strftime('%A')  # Get the name of the day
+
+        # Add suffix to the day
+        if 4 <= day <= 20 or 24 <= day <= 30:
+            suffix = "th"
+        else:
+            suffix = ["st", "nd", "rd"][day % 10 - 1]
+
+        formatted_date = f"{day_of_week} {month_name} {day}{suffix}"
+        return formatted_date
+    except ValueError:
+        return None  # Skip non-date entries that cannot be parsed
 
 def convert_date_format(date_str):
     if date_str == 'Date':

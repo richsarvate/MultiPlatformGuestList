@@ -5,6 +5,7 @@ SQUARESPACE_API_KEY = "9c5b4169-431d-4d36-adaa-dfa105767f4a"
 
 SCRIPT_INTERVAL=10
 GMAIL_SCRIPT_INTERVAL_HOURS=1
+GMAIL_SCRIPT_INTERVAL_MINUTES_FEVER=60
 
 GOOGLE_CREDS_FILE="/home/ec2-user/GuestListScripts/creds.json"
 GMAIL_CREDS_FILE="/home/ec2-user/GuestListScripts/gmailApiCreds.json"
