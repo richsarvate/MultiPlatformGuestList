@@ -2,6 +2,22 @@ import re
 from datetime import datetime
 from dateutil import parser
 
+def get_city(string):
+    venue = get_venue(string)
+    
+    # Normalize the venue string to lowercase to make the comparison case-insensitive
+    venue_lower = venue.lower()
+    
+    # Check if the venue matches the specified strings
+    if venue_lower in ['valencia', 'palace', 'church']:
+        city = 'SF'
+    elif venue_lower in ['stowaway', 'citizen', 'barber']:
+        city = 'LA'
+    else:
+        city = 'Unknown'  # If the venue does not match any of the specified strings
+    
+    return city
+
 def get_venue(string):
   """Takes a string and checks if it contains Valencia, Stowaway, Palace, or Citizen. Whichever one matches first, the function returns that name. The function ignores uppercase or lowercase when matching.
 
@@ -51,6 +67,31 @@ def extract_venue_name(product_name):
     return venue_name
   else:
     return None
+
+import re
+
+def extract_date_from_subject(subject):
+    """
+    Extracts the date from the product name, assuming the date format is MM-DD-YYYY.
+
+    Args:
+    product_name: The product name containing a date.
+
+    Returns:
+    The date in MM-DD-YYYY format, or None if the date cannot be extracted.
+    """
+    # Compile a regular expression to match the date in MM-DD-YYYY format.
+    date_regex = r"\d{2}-\d{2}-\d{4}"
+
+    # Search the regular expression against the product name.
+    match = re.search(date_regex, subject)
+
+    # If the regular expression finds a match, return the matched date.
+    if match:
+        return match.group()
+    else:
+        return None
+
 
 def extract_date(product_name):
   """Extracts the venue name from the product name.
