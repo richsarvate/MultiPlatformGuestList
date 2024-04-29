@@ -40,13 +40,39 @@ def insert_data_into_google_sheet(batch_data):
                 worksheet.update('A1:H1', [headers])
 
         sum_formula = '=ARRAYFORMULA(SUM(VALUE(F2:F100)))'
+        sum_formula_2 = '=SUM(ARRAYFORMULA(IF(H2:H100<>"", VALUE(F2:F100), 0)))'
+        sum_formula_3 = '=J1/I1'
+        sum_formula_4 = 'Total Checked In'
+
+        sum_formula_5 = '=SUM(ARRAYFORMULA(IF(G2:G99<>"Guest List", VALUE(F2:F99), 0)))'
+        sum_formula_6 = '=SUMPRODUCT((G2:G99<>"Guest List") * (H2:H99<>"") * VALUE(F2:F99))'
+        sum_formula_7 = '=J2/I2'
+        sum_formula_8 = 'Paid Check in'
+
+        sum_formula_9 = '=SUM(ARRAYFORMULA(IF(G2:G99="Guest List", VALUE(F2:F99), 0)))'
+        sum_formula_10 = '=SUMPRODUCT((G2:G99="Guest List") * (H2:H99<>"") * VALUE(F2:F99))'
+        sum_formula_11 = '=J3/I3'
+        sum_formula_12 = 'Free List Check in'
+
         try:
             cell = worksheet.find('total:')
-            worksheet.update_cell(cell.row, cell.col + 1, sum_formula)
-        except APIError as e:
+            worksheet.update_cell(cell.row, cell.col + 1, "" + sum_formula)
+            worksheet.update_cell(cell.row, cell.col + 2, "" + sum_formula_2)
+            worksheet.update_cell(cell.row, cell.col + 3, "" + sum_formula_3)
+            worksheet.update_cell(cell.row, cell.col + 4, "" + sum_formula_4)
+
+            #worksheet.update_cell(cell.row + 1, cell.col + 1, "" + sum_formula_5)
+            #worksheet.update_cell(cell.row + 1, cell.col + 2, "" + sum_formula_6)
+            #worksheet.update_cell(cell.row + 1, cell.col + 3, "" + sum_formula_7)
+            #worksheet.update_cell(cell.row + 1, cell.col + 4, "" + sum_formula_8)
+
+            #worksheet.update_cell(cell.row + 2, cell.col + 1, "" + sum_formula_9)
+            #worksheet.update_cell(cell.row + 2, cell.col + 2, "" + sum_formula_10)
+            #worksheet.update_cell(cell.row + 2, cell.col + 3, "" + sum_formula_11)
+            #worksheet.update_cell(cell.row + 2, cell.col + 4, "" + sum_formula_12)
+        
+        except Exception as e:
             print(f"An error occurred: {e}")
-            print("Tried to add the sum formula but could not find a cell to add it to")
-            pass
 
         if len(worksheet.get_all_values()) == 0:
             worksheet.append_row(headers, 1)

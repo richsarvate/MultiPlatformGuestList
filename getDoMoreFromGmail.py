@@ -13,9 +13,21 @@ import csv
 from getVenueAndDate import get_venue,extract_venue_name, extract_date,extract_date_from_subject,convert_date_from_any_format
 from insertIntoGoogleSheet import insert_data_into_google_sheet
 import config
+import requests
 
 # Define the SCOPES. If modifying it, delete the token.pickle file.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+
+def extract_button_url(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    button = soup.find('a', string='I RECEIVED THIS LIST')  # Adjust text if necessary
+    if button:
+        return button['href']
+    return None
+
+def click_button(url):
+    response = requests.get(url)
+    return response.status_code
 
 def getEmails():
     creds = None
@@ -86,6 +98,16 @@ def getEmails():
                     #print("Subject:", subject)
                     #print("CSV Data:")
                     #print(csv_data)
+
+            # Example usage within your getEmails() function:
+            for part in txt['payload']['parts']:
+                if part['mimeType'] == 'text/html':
+                    data = base64.urlsafe_b64decode(part['body']['data'].encode('UTF-8')).decode('UTF-8')
+                    button_url = extract_button_url(data)
+                    if button_url:
+                        print("Button URL found:", button_url)
+                        status_code = click_button(button_url)
+                        print("Clicked the button. HTTP Status Code:", status_code)
 
             if subject and csv_data:
                 print("Subject:", subject)
