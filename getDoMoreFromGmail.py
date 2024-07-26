@@ -26,8 +26,13 @@ def extract_button_url(html_content):
     return None
 
 def click_button(url):
-    response = requests.get(url)
-    return response.status_code
+    session = requests.Session()  # Using session to maintain context across requests
+    response = session.get(url, allow_redirects=True)  # Ensure redirects are allowed
+    final_url = response.url  # Get the final URL after redirection
+    print("Final URL after redirects:", final_url)
+
+    return response.status_code, response.text
+
 
 def getEmails():
     creds = None
@@ -106,8 +111,9 @@ def getEmails():
                     button_url = extract_button_url(data)
                     if button_url:
                         print("Button URL found:", button_url)
-                        status_code = click_button(button_url)
+                        status_code, page_content = click_button(button_url)
                         print("Clicked the button. HTTP Status Code:", status_code)
+                        print("Page content:", page_content)  # Now printing the whole text content of the page
 
             if subject and csv_data:
                 print("Subject:", subject)
