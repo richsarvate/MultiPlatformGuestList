@@ -20,6 +20,17 @@ response = requests.get(
     )
 )
 
+event_data = response.json()  # Parse the JSON response
+print(event_data)  # Pretty-print the JSON data
+
+def format_time(date_string):
+    # Convert the date string to a datetime object
+    date_obj = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S')
+
+    # Extract and format the time part without space and in lowercase (e.g., "8:00PM" -> "8pm")
+    formatted_time = date_obj.strftime('%I%p').lstrip('0').lower()  # Remove leading zero for hours and make lowercase
+    return formatted_time
+
 def format_date(input_date):
     try:
         # Parse the input date string into a datetime object
@@ -70,6 +81,9 @@ def iterate_through_orders(orders):
 
     # Get the show name.
     event_id = order["event_id"]
+    order_id = order["id"]
+
+    print( "Order ID is " + order_id)
 
     eventResponse = requests.get(
         "https://www.eventbriteapi.com/v3/events/{}?token={}".format(
@@ -77,7 +91,11 @@ def iterate_through_orders(orders):
         )
     )
 
+    event_data = eventResponse.json()  # Parse the JSON response
+    #print(event_data)
+
     event_name = ""
+    event_time = "Time Not Found"
 
     # Check the status code of the response
     if eventResponse.status_code == 200:
@@ -90,6 +108,7 @@ def iterate_through_orders(orders):
         venue = get_venue(event_name)
         #event_date = convert_date_format(eventData["start"]["local"])
         event_date=format_date(eventData["start"]["local"])
+        event_time = format_time(eventData["start"]["local"])
 
     else:
         # Handle the error
@@ -101,16 +120,33 @@ def iterate_through_orders(orders):
         )
     )
 
+    tickets = 0
+    ticket_class = "not found"
+
     # Check the status code of the response
     if eventAttendees.status_code == 200:
         attendees = eventAttendees.json()
+
+        print("Here is the attendee data: ", attendees)
+
+        # Iterate through attendees and find the one matching the order_id
+        for attendee in attendees['attendees']:
+            if attendee['order_id'] == order_id:
+                print(f"Attendee found: {attendee['profile']['name']}")
+                print(f"Ticket Class: {attendee['ticket_class_name']}")
+                print(f"Quantity of Tickets Purchased: {attendee['quantity']}")
+                attendee_name = attendee['profile']['name']
+                ticket_class = attendee['ticket_class_name']
+                tickets = attendee['quantity']
+                break
+
     else:
         # Handle the error
         print("Error: {} - {}".format(eventAttendees.status_code, response.content))
 
-    tickets = count_objects_with_email(attendees, email)
+    #tickets = count_objects_with_email(attendees, email)
 
-    row_data = [venue, event_date, email, first_name, last_name, tickets, "EventBrite"]
+    row_data = [venue, event_date + " " + event_time, email, first_name, last_name, tickets, "EventBrite", event_time, ticket_class]
 
     if event_name not in batch_data:
         batch_data[event_name] = []

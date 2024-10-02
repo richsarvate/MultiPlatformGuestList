@@ -1,3 +1,4 @@
+import time
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -5,12 +6,11 @@ import pickle
 import os.path
 import base64
 import email
-import time
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import base64
 import csv
-from getVenueAndDate import get_venue,extract_venue_name, extract_date,extract_date_from_subject,convert_date_from_any_format
+from getVenueAndDate import get_venue,extract_venue_name, extract_time_from_subject, extract_date,extract_date_from_subject,convert_date_from_any_format
 from insertIntoGoogleSheet import insert_data_into_google_sheet
 import config
 import requests
@@ -127,6 +127,9 @@ def getEmails():
 
             batch_data = {}
 
+            
+            timeOfShow = "Not Found"
+
             # Iterate through the order data and print customer details
             for row in reader:
 
@@ -142,8 +145,9 @@ def getEmails():
                     venue_name = get_venue(subject)
                     extracted_date = extract_date_from_subject(subject) 
                     showtime = convert_date_from_any_format(extracted_date)
+                    timeOfShow = extract_time_from_subject(subject)
 
-                    row_data = [venue_name, showtime, customer_email, first_name, last_name, num_tickets, "Guest List"]
+                    row_data = [venue_name, showtime +" "+timeOfShow, customer_email, first_name, last_name, num_tickets, "Guest List", timeOfShow, "GA"]
                     print(row_data)
 
                     if show_name not in batch_data:

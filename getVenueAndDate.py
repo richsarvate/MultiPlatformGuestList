@@ -68,7 +68,23 @@ def extract_venue_name(product_name):
   else:
     return None
 
-import re
+def extract_time_from_subject(email_subject):
+    # Regular expression to match time in HH:MM AM/PM format
+    time_pattern = r'\b\d{1,2}:\d{2}\s?[APMapm]{2}\b'
+    
+    # Search for the time in the email subject
+    match = re.search(time_pattern, email_subject)
+    
+    if match:
+        # Extracted time (e.g., '8:00 PM')
+        extracted_time = match.group().strip().lower()
+        
+        # Remove minutes if it's ':00' and make 'am/pm' lowercase
+        formatted_time = extracted_time.replace(':00', '').replace(' ', '')
+        
+        return formatted_time
+    else:
+        return None
 
 def extract_date_from_subject(subject):
     """
@@ -115,8 +131,6 @@ def extract_date(product_name):
       return showtime.strip()
   else:
       return None
-
-from datetime import datetime
 
 def convert_date_from_any_format(date_str):
     if date_str == 'Date':
@@ -173,4 +187,24 @@ def convert_date_format(date_str):
         return formatted_date
     except ValueError:
         return None  # Skip non-date entries that cannot be parsed
- 
+
+def extract_time(product_name):
+    """Extracts the time from the product name and ensures the am/pm is lowercase.
+
+    Args:
+        product_name: The product name in the format 'Venue - Date - Time'.
+
+    Returns:
+        The time in lowercase (e.g., "8pm" or "7:30pm"), or None if the time cannot be extracted.
+    """
+    # Regular expression to capture time in the format "8pm", "7:30pm", etc.
+    time_regex = r"(\d{1,2}(:\d{2})?(am|pm))$"
+
+    # Match the regular expression against the product name.
+    match = re.search(time_regex, product_name, re.IGNORECASE)
+
+    # If the regular expression matches, return the captured time group in lowercase.
+    if match:
+        return match.group(0).strip().lower()
+    else:
+        return None

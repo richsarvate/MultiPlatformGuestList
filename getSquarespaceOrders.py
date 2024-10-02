@@ -3,7 +3,7 @@ import requests
 import gspread
 from datetime import datetime, timedelta
 from insertIntoGoogleSheet import insert_data_into_google_sheet
-from getVenueAndDate import get_venue,extract_venue_name, extract_date
+from getVenueAndDate import get_venue,extract_venue_name, extract_date, extract_time
 import config
 
 print(datetime.utcnow().isoformat()[:-6] + "Z");
@@ -31,26 +31,34 @@ if response.status_code == 200:
     # Parse the JSON response
     data = response.json()
 
+    print(data)
+
     #batch_data = {"date1":[], "date2":[]}
     batch_data = {}
 
     # Iterate through the order data and print customer details
-    for order in data["result"]: 
+    for order in data["result"]:
+        
         first_name = order["billingAddress"]["firstName"]
         last_name = order["billingAddress"]["lastName"]
-        num_tickets = sum(item["quantity"] for item in order["lineItems"])
-        show_name = order["lineItems"][0]["productName"]
         customer_email = order["customerEmail"]
-        venue_name = get_venue(show_name)
-        showtime = extract_date(show_name)
+        time = "Not Found"
 
-        row_data = [venue_name, showtime, customer_email, first_name, last_name, num_tickets, "Squarespace"]
-        print(row_data)
+        for item in order['lineItems']:
+       
+            num_tickets = item["quantity"]
+            show_name = item["productName"]
+            showtime = extract_date(show_name)
+            venue_name = get_venue(show_name)
+            time = extract_time(show_name)
 
-        if show_name not in batch_data:
-            batch_data[show_name] = []
+            row_data = [venue_name, showtime + " " + time, customer_email, first_name, last_name, num_tickets, "Squarespace", time]
+            print(row_data)
+
+            if show_name not in batch_data:
+                batch_data[show_name] = []
         
-        batch_data[show_name].append(row_data)
+            batch_data[show_name].append(row_data)
 
     insert_data_into_google_sheet(batch_data)
     
