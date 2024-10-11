@@ -52,7 +52,7 @@ if response.status_code == 200:
             venue_name = get_venue(show_name)
             time = extract_time(show_name)
 
-            row_data = [venue_name, showtime + " " + time, customer_email, first_name, last_name, num_tickets, "Squarespace", time]
+            row_data = [venue_name, showtime + " " + time, customer_email, first_name, last_name, num_tickets, "Squarespace", time, "GA"]
             print(row_data)
 
             if show_name not in batch_data:

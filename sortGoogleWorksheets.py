@@ -6,6 +6,28 @@ import re
 from datetime import datetime
 from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
 
+def parse_datetime_from_title(title):
+    # Remove the day of the week (e.g., "Wednesday")
+    parts = title.split(" ", 1)
+    if len(parts) < 2:
+        return None  # Invalid format
+    
+    # The date and time part (e.g., "October 9th 8pm")
+    datetime_str = parts[1]
+
+    # Remove ordinal suffixes (st, nd, rd, th) from the day part
+    datetime_str = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', datetime_str)
+
+    # Try to parse the string with the date and time
+    try:
+        # Parse the string with the format "Month Day Time" (e.g., "October 9 8pm")
+        parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p')
+        # Add the current year to the parsed datetime
+        parsed_datetime = parsed_datetime.replace(year=datetime.now().year)
+        return parsed_datetime
+    except ValueError:
+        return None  # Return None if parsing fails
+
 def parse_date_from_title(title):
     # Split the title to remove the day name
     parts = title.split(" ", 1)
@@ -37,7 +59,7 @@ def arrange_worksheets_in_ascending_order(spreadsheet):
         worksheets = spreadsheet.worksheets()
         # Create a list of tuples (worksheet, date) and sort it by date
         sorted_worksheets = sorted(
-            [(ws, parse_date_from_title(ws.title) or datetime.min.date()) for ws in worksheets],
+            [(ws, parse_datetime_from_title(ws.title) or datetime.min) for ws in worksheets],
             key=lambda x: x[1]
         )
         # Iterate over the sorted worksheets and update their index

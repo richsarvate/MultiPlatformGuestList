@@ -7,6 +7,28 @@ from datetime import datetime
 from datetime import timedelta
 from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
 
+def parse_datetime_from_title(title):
+    # Remove the day of the week (e.g., "Wednesday")
+    parts = title.split(" ", 1)
+    if len(parts) < 2:
+        return None  # Invalid format
+    
+    # The date and time part (e.g., "October 9th 8pm")
+    datetime_str = parts[1]
+
+    # Remove ordinal suffixes (st, nd, rd, th) from the day part
+    datetime_str = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', datetime_str)
+
+    # Try to parse the string with the date and time
+    try:
+        # Parse the string with the format "Month Day Time" (e.g., "October 9 8pm")
+        parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p')
+        # Add the current year to the parsed datetime
+        parsed_datetime = parsed_datetime.replace(year=datetime.now().year)
+        return parsed_datetime
+    except ValueError:
+        return None  # Return None if parsing fails
+
 def parse_date_from_title(title):
     # Split the title to remove the day name
     parts = title.split(" ", 1)
@@ -45,6 +67,7 @@ def hide_old_worksheets(folder_id):
 
     # Calculating the date one day before the current date
     one_day_old = current_date - timedelta(days=1)
+    one_day_old_datetime = datetime.combine(one_day_old, datetime.min.time())
 
     # Get all spreadsheets in the specified folder
     response = drive_service.files().list(q=f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.spreadsheet'",
@@ -60,14 +83,19 @@ def hide_old_worksheets(folder_id):
             for worksheet in spreadsheet.worksheets():
                 try:
 
+                    sheet_properties = worksheet._properties
+                    if sheet_properties.get('hidden', False):
+                        print(f"Skipping hidden worksheet: {worksheet.title}")
+                        continue
+
                     print(f"worksheet date is {worksheet.title}")
                     # Parse the worksheet name as a date
-                    worksheet_date = parse_date_from_title(worksheet.title)
+                    worksheet_date = parse_datetime_from_title(worksheet.title)
 
                     print(f"worksheet date is {worksheet_date}")
                     # Parse the worksheet name as a date
                     # Check if the worksheet date is older than the current date
-                    if worksheet_date and worksheet_date < one_day_old:    
+                    if worksheet_date and worksheet_date < one_day_old_datetime:    
                         # Hide the worksheet
                         print(f"this worksheet is older than one day")
 

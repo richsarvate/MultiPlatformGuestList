@@ -47,8 +47,20 @@ def get_email_html(service, user_id, msg_id):
         print(f'An error occurred: {error}')
         return None
 
+def format_time(time_str):
+    # Remove whitespace and format the time properly
+    time_str = time_str.strip().lower()
+    
+    # If the time ends with ":00", remove the minutes part
+    formatted_time = re.sub(r'(\d+):00\s*(am|pm)', r'\1\2', time_str)
+    
+    # Otherwise, return the original time string with any necessary cleanup
+    return formatted_time if formatted_time else time_str
+
 def get_email_body(service, user_id, msg_id):
     html_content = get_email_html(service, user_id, msg_id)
+
+    #print(html_content)
 
     # Parse the HTML content
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -86,7 +98,14 @@ def get_email_body(service, user_id, msg_id):
     else:
         show_date = "Date not found"
 
-    return first_name, last_name, ticket_number, show_date
+    # Find the <img> tag with alt="Hour" and get the time of the show from the next <p> tag
+    time_img_tag = soup.find('img', alt="Hour")
+    if time_img_tag:
+        show_time = time_img_tag.find_parent('td').find_next_sibling('td').get_text(strip=True)
+    else:
+        show_time = "Time not found"
+
+    return first_name, last_name, ticket_number, show_date, format_time(show_time)
 
 def getEmails():
     creds = None
@@ -148,7 +167,7 @@ def getEmails():
 
             txt = service.users().messages().get(userId='me', id=msg['id']).execute()
         
-            first_name, last_name, number_of_tickets, show_date = get_email_body(service, 'me', msg['id'])
+            first_name, last_name, number_of_tickets, show_date, show_time = get_email_body(service, 'me', msg['id'])
 
             venue = get_venue(subject)
             showtime = convert_date_from_any_format(show_date)
@@ -158,9 +177,10 @@ def getEmails():
             print(f"Tickets: {number_of_tickets}")
             print(f"Date: {show_date}")
             print(f"Converted Date: {showtime}")
+            print(f"Time of Show: {show_time}")
             print(f"Venue: {venue}")
 
-            row_data = [venue, showtime, "none", first_name, last_name, number_of_tickets, "Fever"]
+            row_data = [venue, showtime +" "+show_time, "none", first_name, last_name, number_of_tickets, "Fever", show_time, "GA"]
 
             show_name = venue + " " + showtime
 
