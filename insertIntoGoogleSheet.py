@@ -44,11 +44,16 @@ def insert_data_into_google_sheet(batch_data):
                 worksheet.update('A1:J1', [headers])
 
         # Define variables for each column
+        venue_column = 'A'
+        date_column = 'B'
+        email_column = 'C'
+        firstname_column = 'D'
+        lastname_column = 'E'
         ticket_sales_column = 'F'  # Column for ticket sales
-        checkbox_column = 'J'  # Column for the checkbox
-        checked_in_column = 'L'  # Column for people checked in
-        total_tickets_column = 'K'  # Column for total number of tickets
         category_column = 'G'  # Column for categories like 'Guest List' or 'Industry'
+        checkbox_column = 'J'  # Column for the checkbox
+        total_tickets_column = 'K'  # Column for total number of tickets
+        checked_in_column = 'L'  # Column for people checked in
         percentage_checked_in_column = 'M'
 
         # Create formulas using the defined variables

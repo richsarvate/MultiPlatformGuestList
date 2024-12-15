@@ -11,7 +11,7 @@ def get_city(string):
     # Check if the venue matches the specified strings
     if venue_lower in ['valencia', 'palace', 'church']:
         city = 'SF'
-    elif venue_lower in ['stowaway', 'citizen', 'barber']:
+    elif venue_lower in ['stowaway', 'citizen', 'barber','townhouse']:
         city = 'LA'
     else:
         city = 'Unknown'  # If the venue does not match any of the specified strings
@@ -29,7 +29,7 @@ def get_venue(string):
   """
 
   # Create a regular expression that matches the names, ignoring uppercase or lowercase.
-  name_regex = re.compile(r'(?i)(valencia|stowaway|palace|citizen|church|barber)')
+  name_regex = re.compile(r'(?i)(valencia|stowaway|palace|citizen|church|barber|townhouse)')
 
   # Find the first match in the input string.
   match = name_regex.search(string)
