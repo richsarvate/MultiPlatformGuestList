@@ -34,7 +34,7 @@ def insert_data_into_google_sheet(batch_data):
         except gspread.WorksheetNotFound:
             worksheet = sheet.add_worksheet(show_date, rows=100, cols=20)
 
-        headers = ["venue", "date", "email", "firstname", "lastname", "tickets", "source", "time", "type", "total:"]
+        headers = ["venue", "date", "email", "source", "time", "type", "firstname", "lastname", "tickets", "total:"]
 
         if len(worksheet.get_all_values()) == 0:
             worksheet.append_row(headers, 1)
@@ -44,13 +44,8 @@ def insert_data_into_google_sheet(batch_data):
                 worksheet.update('A1:J1', [headers])
 
         # Define variables for each column
-        venue_column = 'A'
-        date_column = 'B'
-        email_column = 'C'
-        firstname_column = 'D'
-        lastname_column = 'E'
-        ticket_sales_column = 'F'  # Column for ticket sales
-        category_column = 'G'  # Column for categories like 'Guest List' or 'Industry'
+        ticket_sales_column = chr(65 + headers.index("tickets")) # Column for ticket sales
+        category_column = chr(65 + headers.index("source"))  # Column for categories like 'Eventbrite' or 'Guest List' or 'Industry'
         checkbox_column = 'J'  # Column for the checkbox
         total_tickets_column = 'K'  # Column for total number of tickets
         checked_in_column = 'L'  # Column for people checked in
