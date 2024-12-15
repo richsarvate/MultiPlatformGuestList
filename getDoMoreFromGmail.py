@@ -147,7 +147,7 @@ def getEmails():
                     showtime = convert_date_from_any_format(extracted_date)
                     timeOfShow = extract_time_from_subject(subject)
 
-                    row_data = [venue_name, showtime +" "+timeOfShow, customer_email, first_name, last_name, num_tickets, "Guest List", timeOfShow, "GA"]
+                    row_data = [venue_name, showtime +" "+timeOfShow, customer_email, "Guest List", timeOfShow, "GA", first_name, last_name, num_tickets ]
                     print(row_data)
 
                     if show_name not in batch_data:

@@ -180,7 +180,7 @@ def getEmails():
             print(f"Time of Show: {show_time}")
             print(f"Venue: {venue}")
 
-            row_data = [venue, showtime +" "+show_time, "none", first_name, last_name, number_of_tickets, "Fever", show_time, "GA"]
+            row_data = [venue, showtime +" "+show_time, "none", "Fever", show_time, "GA", first_name, last_name, number_of_tickets]
 
             show_name = venue + " " + showtime
 

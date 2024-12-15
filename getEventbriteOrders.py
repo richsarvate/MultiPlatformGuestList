@@ -146,7 +146,7 @@ def iterate_through_orders(orders):
 
     #tickets = count_objects_with_email(attendees, email)
 
-    row_data = [venue, event_date + " " + event_time, email, first_name, last_name, tickets, "EventBrite", event_time, ticket_class]
+    row_data = [venue, event_date + " " + event_time, email, "EventBrite", event_time, ticket_class, first_name, last_name, tickets]
 
     if event_name not in batch_data:
         batch_data[event_name] = []
