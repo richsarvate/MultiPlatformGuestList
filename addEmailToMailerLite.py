@@ -1,7 +1,7 @@
 import requests
 
 # MailerLite API Key
-API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiOWU1ZjkzMDRiN2QxYWY1ZWM2ZDNjNmFlODM0YmYyNjM5YjhjYTU5ZDdhYWUyNmM0ZmQ0YTYxZmEyMmM1YzIxZDYxZjM4Y2FhYmNhZTg0ODciLCJpYXQiOjE3MzY5MTY1MTQuMzI3NTY5LCJuYmYiOjE3MzY5MTY1MTQuMzI3NTcxLCJleHAiOjQ4OTI1OTAxMTQuMzIzOTg1LCJzdWIiOiIxMjkwMjEyIiwic2NvcGVzIjpbXX0.RZpywLR4PD5LvI4ef1XshSbEr4ab7AcnjQC8V6EqrY4kqV-8i0RrGO57nkyhW46VtT0KzbLxnsEMEsszFH0rJH12-fN7afM7-GRPXyZSPvfNpk0Z6yWTJHlMy9oS8keTJvGcuCHRilkR694XfoAofsNbWhfJFtPx6yRKOb8LdJScyC7gwobdhuIcteor7jkFskaRCYRW8wo2MHPE7z3_EdahPyYZc1FXzbaonrjhNoUT0Zx_KeUZwajXht39RcM-V6zwBFFBF6XKXx-67NCOMLTjzCk8N2RgiBV2sTMoIMB0WRmdgnkTsBlq4zacGm-29Q3Mnp_gtu7QEQlRDzEMGjKTTlPqVuTT4vclWySUq1NGQdT6X-XGuIbuA3syLFNd3lDq0DpE1nF2x4NwUbcIuzyFKr-w2bHcg_Pr4XDrlv5llSPKR19Bf66jPDqdPWPLy3u4MSQXZtdW3RKPwSSyVdUFFzICQp1KhtxrYLxms6Mweq3TW9nkfZCM7nogI8l8S7uprTk11XK0q1SSnp65fPGNPRiR4yZ446plS1i1fDskcTJxLfoX6RkybBTofNDWjg33Gio9NkuzzTDCoM1OSTFC-ufw184tzbN8a2i29JUDd2Yqep7riyY6qY3Oc0yvNFDpRzb3zAZcwJSdvdBhkMFhLRyIY32aSAalShiskWo"
+API_KEY = "YeyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiOWU1ZjkzMDRiN2QxYWY1ZWM2ZDNjNmFlODM0YmYyNjM5YjhjYTU5ZDdhYWUyNmM0ZmQ0YTYxZmEyMmM1YzIxZDYxZjM4Y2FhYmNhZTg0ODciLCJpYXQiOjE3MzY5MTY1MTQuMzI3NTY5LCJuYmYiOjE3MzY5MTY1MTQuMzI3NTcxLCJleHAiOjQ4OTI1OTAxMTQuMzIzOTg1LCJzdWIiOiIxMjkwMjEyIiwic2NvcGVzIjpbXX0.RZpywLR4PD5LvI4ef1XshSbEr4ab7AcnjQC8V6EqrY4kqV-8i0RrGO57nkyhW46VtT0KzbLxnsEMEsszFH0rJH12-fN7afM7-GRPXyZSPvfNpk0Z6yWTJHlMy9oS8keTJvGcuCHRilkR694XfoAofsNbWhfJFtPx6yRKOb8LdJScyC7gwobdhuIcteor7jkFskaRCYRW8wo2MHPE7z3_EdahPyYZc1FXzbaonrjhNoUT0Zx_KeUZwajXht39RcM-V6zwBFFBF6XKXx-67NCOMLTjzCk8N2RgiBV2sTMoIMB0WRmdgnkTsBlq4zacGm-29Q3Mnp_gtu7QEQlRDzEMGjKTTlPqVuTT4vclWySUq1NGQdT6X-XGuIbuA3syLFNd3lDq0DpE1nF2x4NwUbcIuzyFKr-w2bHcg_Pr4XDrlv5llSPKR19Bf66jPDqdPWPLy3u4MSQXZtdW3RKPwSSyVdUFFzICQp1KhtxrYLxms6Mweq3TW9nkfZCM7nogI8l8S7uprTk11XK0q1SSnp65fPGNPRiR4yZ446plS1i1fDskcTJxLfoX6RkybBTofNDWjg33Gio9NkuzzTDCoM1OSTFC-ufw184tzbN8a2i29JUDd2Yqep7riyY6qY3Oc0yvNFDpRzb3zAZcwJSdvdBhkMFhLRyIY32aSAalShiskWo"
 
 # Segment Mapping
 SEGMENTS = {
@@ -73,20 +73,21 @@ def batch_add_contacts_to_mailerlite(batch_data):
                 "body": body
             })
 
-    # Prepare batch payload
-    batch_payload = {"requests": requests_list}
+    # Split requests into batches of 50
+    for i in range(0, len(requests_list), 50):
+        batch_payload = {"requests": requests_list[i:i+50]}
 
-    # Make the batch request
-    response = requests.post(batch_url, json=batch_payload, headers=headers)
+        # Make the batch request
+        response = requests.post(batch_url, json=batch_payload, headers=headers)
 
-    # Handle response
-    if response.status_code == 200:
-        result = response.json()
-        print(f"Batch Process Completed: {result['successful']} successful, {result['failed']} failed.")
-        for res in result['responses']:
-            print(res)
-    else:
-        print(f"Failed to process batch: {response.status_code}", response.json())
+        # Handle response
+        if response.status_code == 200:
+            result = response.json()
+            print(f"Batch Process Completed: {result['successful']} successful, {result['failed']} failed.")
+            for res in result['responses']:
+                print(res)
+        else:
+            print(f"Failed to process batch: {response.status_code}", response.json())
 
 # Example Data Structure
 batch_data = {
