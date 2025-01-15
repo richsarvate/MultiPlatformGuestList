@@ -27,6 +27,12 @@ def is_valid_email(email):
 
 # Function to Batch Add Contacts to MailerLite
 def batch_add_contacts_to_mailerlite(emailsToAdd):
+
+    # Debugging output
+    print("Debug: Emails to Add:")
+    from pprint import pprint
+    pprint(emailsToAdd)
+
     """
     Batch adds contacts to MailerLite segments.
 
