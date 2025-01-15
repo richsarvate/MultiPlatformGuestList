@@ -4,7 +4,7 @@ import requests
 API_KEY = "YeyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiOWU1ZjkzMDRiN2QxYWY1ZWM2ZDNjNmFlODM0YmYyNjM5YjhjYTU5ZDdhYWUyNmM0ZmQ0YTYxZmEyMmM1YzIxZDYxZjM4Y2FhYmNhZTg0ODciLCJpYXQiOjE3MzY5MTY1MTQuMzI3NTY5LCJuYmYiOjE3MzY5MTY1MTQuMzI3NTcxLCJleHAiOjQ4OTI1OTAxMTQuMzIzOTg1LCJzdWIiOiIxMjkwMjEyIiwic2NvcGVzIjpbXX0.RZpywLR4PD5LvI4ef1XshSbEr4ab7AcnjQC8V6EqrY4kqV-8i0RrGO57nkyhW46VtT0KzbLxnsEMEsszFH0rJH12-fN7afM7-GRPXyZSPvfNpk0Z6yWTJHlMy9oS8keTJvGcuCHRilkR694XfoAofsNbWhfJFtPx6yRKOb8LdJScyC7gwobdhuIcteor7jkFskaRCYRW8wo2MHPE7z3_EdahPyYZc1FXzbaonrjhNoUT0Zx_KeUZwajXht39RcM-V6zwBFFBF6XKXx-67NCOMLTjzCk8N2RgiBV2sTMoIMB0WRmdgnkTsBlq4zacGm-29Q3Mnp_gtu7QEQlRDzEMGjKTTlPqVuTT4vclWySUq1NGQdT6X-XGuIbuA3syLFNd3lDq0DpE1nF2x4NwUbcIuzyFKr-w2bHcg_Pr4XDrlv5llSPKR19Bf66jPDqdPWPLy3u4MSQXZtdW3RKPwSSyVdUFFzICQp1KhtxrYLxms6Mweq3TW9nkfZCM7nogI8l8S7uprTk11XK0q1SSnp65fPGNPRiR4yZ446plS1i1fDskcTJxLfoX6RkybBTofNDWjg33Gio9NkuzzTDCoM1OSTFC-ufw184tzbN8a2i29JUDd2Yqep7riyY6qY3Oc0yvNFDpRzb3zAZcwJSdvdBhkMFhLRyIY32aSAalShiskWo"
 
 # Segment Mapping
-SEGMENTS = {
+GROUPS = {
     "Townhouse": "143572270449690387",
     "Stowaway": "143572260771333843",
     "Citizen": "143572251965392675",
@@ -26,7 +26,7 @@ def is_valid_email(email):
     return re.match(email_regex, email) is not None
 
 # Function to Batch Add Contacts to MailerLite
-def batch_add_contacts_to_mailerlite(batch_data):
+def batch_add_contacts_to_mailerlite(emailsToAdd):
     """
     Batch adds contacts to MailerLite segments.
 
@@ -45,8 +45,8 @@ def batch_add_contacts_to_mailerlite(batch_data):
     # Collect requests for batch processing
     requests_list = []
 
-    for show, contacts in batch_data.items():
-        segment_id = SEGMENTS.get(show, SEGMENTS["Uncategorized"])
+    for show, contacts in emailsToAdd.items():
+        group_id = GROUPS.get(show, GROUPS["Uncategorized"])
         
         for contact in contacts:
             email = contact[2]
@@ -64,7 +64,7 @@ def batch_add_contacts_to_mailerlite(batch_data):
             body = {
                 "email": email,
                 "fields": {"name": name},
-                "groups": [segment_id]
+                "groups": [group_id]
             }
 
             requests_list.append({
@@ -90,7 +90,7 @@ def batch_add_contacts_to_mailerlite(batch_data):
             print(f"Failed to process batch: {response.status_code}", response.json())
 
 # Example Data Structure
-batch_data = {
+test_data = {
     "Townhouse": [
         ["Townhouse", "2025-01-15", "janedoe@example.com", "Guest List", "7:00 PM", "GA", "Jane", "Doe", 2],
         ["Townhouse", "2025-01-15", "johndoe@example.com", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3],
@@ -102,10 +102,10 @@ batch_data = {
         ["Speakeasy", "2025-01-16", "invalid-email", "Squarespace", "9:00 PM", "VIP", "Bob", "Johnson", 4]
     ],
     "Hotel": [
-        ["Speakeasy", "2025-01-16", "alice@example.com", "Squarespace", "7:30 PM", "GA", "Alice", "Smith", 1],
-        ["Speakeasy", "2025-01-16", "invalid-email", "Squarespace", "9:00 PM", "VIP", "Bob", "Johnson", 4]
+        ["Hotel", "2025-01-16", "steven@example.com", "Squarespace", "7:30 PM", "GA", "Steven", "Smith", 1],
+        ["Hotel", "2025-01-16", "ghrt3", "Squarespace", "9:00 PM", "VIP", "Bob", "Johnson", 4]
     ]
 }
 
 # Call the function with the example data
-batch_add_contacts_to_mailerlite(batch_data)
+batch_add_contacts_to_mailerlite(test_data)

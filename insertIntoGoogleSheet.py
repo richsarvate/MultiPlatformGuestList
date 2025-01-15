@@ -5,8 +5,23 @@ from googleapiclient.discovery import build
 from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
 from datetime import datetime 
 import re  # Add this line
+from addEmailToMailerLite import batch_add_contacts_to_mailerlite
+
+#batch_data example:
+#batch_data = {
+#    "Townhouse": [
+#        ["Townhouse", "2025-01-15", "janedoe@example.com", "Guest List", "7:00 PM", "GA", "Jane", "Doe", 2],
+#        ["Townhouse", "2025-01-15", "johndoe@example.com", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3]
+#    ],
+#    "Speakeasy": [
+#        ["Speakeasy", "2025-01-16", "alice@example.com", "Squarespace", "7:30 PM", "GA", "Alice", "Smith", 1],
+#        ["Speakeasy", "2025-01-16", "bob@example.com", "Squarespace", "9:00 PM", "VIP", "Bob", "Johnson", 4]
+#    ]
+#}
 
 def insert_data_into_google_sheet(batch_data):
+
+    batch_add_contacts_to_mailerlite(emailsToAdd=batch_data)
     
     # Replace with your Google Sheets credentials JSON file path
     credentials_file = "creds.json"  # Make sure the file path is correct
