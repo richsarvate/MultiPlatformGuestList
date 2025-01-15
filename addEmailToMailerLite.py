@@ -13,27 +13,27 @@ SEGMENTS = {
     "Uncategorized": "143572290783675542"
 }
 
-# Function to Add Contact to Segment
-def add_contact_to_mailerlite_segment(email, name=None, show=None):
+# Function to validate email
+def is_valid_email(email):
     """
-    Add a contact to a specific MailerLite segment based on the show name.
-    Defaults to 'Uncategorized' if the show is not found.
+    Validates if the provided string is a valid email address.
 
-    :param email: Email address of the contact (required)
-    :param name: Name of the contact (optional)
-    :param show: Name of the show to determine the segment ID (optional)
-    :return: Response from the API
+    :param email: Email address to validate
+    :return: True if valid, False otherwise
     """
-    # Use "Uncategorized" if the show is not found
-    if show not in SEGMENTS:
-        print(f"Show '{show}' not found. Defaulting to 'Uncategorized'.")
-        show = "Uncategorized"
+    import re
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(email_regex, email) is not None
 
-    # Get the Segment ID
-    segment_id = SEGMENTS[show]
+# Function to Batch Add Contacts to MailerLite
+def batch_add_contacts_to_mailerlite(batch_data):
+    """
+    Batch adds contacts to MailerLite segments.
 
-    # API Endpoint
-    api_url = f"https://connect.mailerlite.com/api/subscribers"
+    :param batch_data: Dictionary with show names as keys and contact lists as values
+    """
+    # API Endpoint for batch requests
+    batch_url = "https://connect.mailerlite.com/api/batch"
 
     # Request Headers
     headers = {
@@ -42,26 +42,69 @@ def add_contact_to_mailerlite_segment(email, name=None, show=None):
         "Authorization": f"Bearer {API_KEY}"
     }
 
-    # Payload
-    payload = {
-        "email": email,
-        "fields": {"name": name} if name else {},
-        "groups": [segment_id]
-    }
+    # Collect requests for batch processing
+    requests_list = []
 
-    # Make the POST request
-    response = requests.post(api_url, json=payload, headers=headers)
+    for show, contacts in batch_data.items():
+        segment_id = SEGMENTS.get(show, SEGMENTS["Uncategorized"])
+        
+        for contact in contacts:
+            email = contact[2]
 
-    # Check the response
-    if response.status_code in [200, 201]:
-        print(f"Contact added to '{show}' segment successfully:", response.json())
+            # Skip if email is not valid
+            if not is_valid_email(email):
+                print(f"Invalid email skipped: {email}")
+                continue
+
+            first_name = contact[6]
+            last_name = contact[7]
+            name = f"{first_name} {last_name}".strip()
+
+            # Prepare individual request body
+            body = {
+                "email": email,
+                "fields": {"name": name},
+                "groups": [segment_id]
+            }
+
+            requests_list.append({
+                "method": "POST",
+                "path": "/api/subscribers",
+                "body": body
+            })
+
+    # Prepare batch payload
+    batch_payload = {"requests": requests_list}
+
+    # Make the batch request
+    response = requests.post(batch_url, json=batch_payload, headers=headers)
+
+    # Handle response
+    if response.status_code == 200:
+        result = response.json()
+        print(f"Batch Process Completed: {result['successful']} successful, {result['failed']} failed.")
+        for res in result['responses']:
+            print(res)
     else:
-        print(f"Failed to add contact to '{show}' segment:", response.status_code, response.json())
+        print(f"Failed to process batch: {response.status_code}", response.json())
 
+# Example Data Structure
+batch_data = {
+    "Townhouse": [
+        ["Townhouse", "2025-01-15", "janedoe@example.com", "Guest List", "7:00 PM", "GA", "Jane", "Doe", 2],
+        ["Townhouse", "2025-01-15", "johndoe@example.com", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3],
+        ["Townhouse", "2025-01-15", "", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3],
+        ["Townhouse", "2025-01-15", "none", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3]
+    ],
+    "Speakeasy": [
+        ["Speakeasy", "2025-01-16", "alice@example.com", "Squarespace", "7:30 PM", "GA", "Alice", "Smith", 1],
+        ["Speakeasy", "2025-01-16", "invalid-email", "Squarespace", "9:00 PM", "VIP", "Bob", "Johnson", 4]
+    ],
+    "Hotel": [
+        ["Speakeasy", "2025-01-16", "alice@example.com", "Squarespace", "7:30 PM", "GA", "Alice", "Smith", 1],
+        ["Speakeasy", "2025-01-16", "invalid-email", "Squarespace", "9:00 PM", "VIP", "Bob", "Johnson", 4]
+    ]
+}
 
-# Example Usage
-add_contact_to_mailerlite_segment(
-    email="janedoe@example.com",
-    name="Jane Doe",
-    show="LA - Unknown"  # Invalid show name will default to "Uncategorized"
-)
+# Call the function with the example data
+batch_add_contacts_to_mailerlite(batch_data)
