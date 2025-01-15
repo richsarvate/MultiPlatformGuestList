@@ -5,12 +5,12 @@ API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiOWU1Zjkz
 
 # Segment Mapping
 GROUPS = {
-    "Townhouse": "143572270449690387",
-    "Stowaway": "143572260771333843",
-    "Citizen": "143572251965392675",
-    "Church": "143572232163034114",
-    "Speakeasy": "143571926962407099",
-    "Uncategorized": "143572290783675542"
+    "townhouse": "143572270449690387",
+    "stowaway": "143572260771333843",
+    "citizen": "143572251965392675",
+    "church": "143572232163034114",
+    "speakeasy": "143571926962407099",
+    "uncategorized": "143572290783675542"
 }
 
 # Function to validate email
@@ -52,7 +52,7 @@ def batch_add_contacts_to_mailerlite(emailsToAdd):
     requests_list = []
 
     for show, contacts in emailsToAdd.items():
-        group_id = GROUPS.get(show, GROUPS["Uncategorized"])
+        group_id = GROUPS.get(contact[0].lower(), GROUPS["uncategorized"])
         
         for contact in contacts:
             email = contact[2]
