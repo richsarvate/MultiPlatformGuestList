@@ -52,10 +52,10 @@ def batch_add_contacts_to_mailerlite(emailsToAdd):
     requests_list = []
 
     for show, contacts in emailsToAdd.items():
-        group_id = GROUPS.get(contact[0].lower(), GROUPS["uncategorized"])
         
         for contact in contacts:
             email = contact[2]
+            group_id = GROUPS.get(contact[0].lower(), GROUPS["uncategorized"])
 
             # Skip if email is not valid
             if not is_valid_email(email):
