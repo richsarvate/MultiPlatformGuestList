@@ -96,22 +96,22 @@ def batch_add_contacts_to_mailerlite(emailsToAdd):
             print(f"Failed to process batch: {response.status_code}", response.json())
 
 # Example Data Structure
-test_data = {
-    "Townhouse": [
-        ["Townhouse", "2025-01-15", "janedoe@example.com", "Guest List", "7:00 PM", "GA", "Jane", "Doe", 2],
-        ["Townhouse", "2025-01-15", "johndoe@example.com", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3],
-        ["Townhouse", "2025-01-15", "", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3],
-        ["Townhouse", "2025-01-15", "none", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3]
-    ],
-    "Speakeasy": [
-        ["Speakeasy", "2025-01-16", "alice@example.com", "Squarespace", "7:30 PM", "GA", "Alice", "Smith", 1],
-        ["Speakeasy", "2025-01-16", "invalid-email", "Squarespace", "9:00 PM", "VIP", "Bob", "Johnson", 4]
-    ],
-    "Hotel": [
-        ["Hotel", "2025-01-16", "steven@example.com", "Squarespace", "7:30 PM", "GA", "Steven", "Smith", 1],
-        ["Hotel", "2025-01-16", "ghrt3", "Squarespace", "9:00 PM", "VIP", "Bob", "Johnson", 4]
-    ]
-}
+#test_data = {
+#    "Townhouse": [
+#        ["Townhouse", "2025-01-15", "janedoe@example.com", "Guest List", "7:00 PM", "GA", "Jane", "Doe", 2],
+#        ["Townhouse", "2025-01-15", "johndoe@example.com", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3],
+#        ["Townhouse", "2025-01-15", "", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3],
+#        ["Townhouse", "2025-01-15", "none", "Eventbrite", "8:00 PM", "GA", "John", "Doe", 3]
+#    ],
+#    "Speakeasy": [
+#        ["Speakeasy", "2025-01-16", "alice@example.com", "Squarespace", "7:30 PM", "GA", "Alice", "Smith", 1],
+#        ["Speakeasy", "2025-01-16", "invalid-email", "Squarespace", "9:00 PM", "VIP", "Bob", "Johnson", 4]
+#    ],
+#    "Hotel": [
+#        ["Hotel", "2025-01-16", "steven@example.com", "Squarespace", "7:30 PM", "GA", "Steven", "Smith", 1],
+#        ["Hotel", "2025-01-16", "ghrt3", "Squarespace", "9:00 PM", "VIP", "Bob", "Johnson", 4]
+#    ]
+#}
 
 # Call the function with the example data
 #batch_add_contacts_to_mailerlite(test_data)
