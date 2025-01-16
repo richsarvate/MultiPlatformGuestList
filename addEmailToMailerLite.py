@@ -114,4 +114,4 @@ test_data = {
 }
 
 # Call the function with the example data
-batch_add_contacts_to_mailerlite(test_data)
+#batch_add_contacts_to_mailerlite(test_data)
