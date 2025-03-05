@@ -29,7 +29,7 @@ def get_venue(string):
   """
 
   # Create a regular expression that matches the names, ignoring uppercase or lowercase.
-  name_regex = re.compile(r'(?i)(valencia|stowaway|palace|citizen|church|barber|townhouse)')
+  name_regex = re.compile(r'(?i)(valencia|stowaway|palace|citizen|church|Blind Barber Fulton Market|townhouse)')
 
   # Find the first match in the input string.
   match = name_regex.search(string)

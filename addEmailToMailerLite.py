@@ -10,6 +10,7 @@ GROUPS = {
     "citizen": "143572251965392675",
     "church": "143572232163034114",
     "palace": "143571926962407099",
+    "blind barber fulton market": "148048384759956607",
     "uncategorized": "143572290783675542"
 }
 
