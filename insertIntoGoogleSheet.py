@@ -1,5 +1,6 @@
 import gspread
 from google.oauth2.service_account import Credentials
+from sortGoogleWorksheets import sort_worksheets
 import config
 from googleapiclient.discovery import build
 from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
@@ -48,6 +49,7 @@ def insert_data_into_google_sheet(batch_data):
             worksheet = sheet.worksheet(show_date)
         except gspread.WorksheetNotFound:
             worksheet = sheet.add_worksheet(show_date, rows=100, cols=20)
+            sort_worksheets(config.GUEST_LIST_FOLDER_ID)
 
         headers = ["venue", "date", "email", "source", "time", "type", "firstname", "lastname", "tickets", "total:"]
 
@@ -111,7 +113,6 @@ def insert_data_into_google_sheet(batch_data):
             # Capitalize first names and sort the data (excluding the header row)
             for row in data_range[1:]:
                 row[firstname_column - 1] = capitalize_name(row[firstname_column - 1])  # Capitalize first name
-
 
             # Sort the data (excluding the header row)
             data_range[1:] = sorted(data_range[1:], key=lambda row: row[firstname_column - 1])  # Sort based on firstname
