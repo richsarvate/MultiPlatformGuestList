@@ -134,19 +134,17 @@ def iterate_through_orders(orders):
             if attendee['order_id'] == order_id:
                 print(f"Attendee found: {attendee['profile']['name']}")
                 print(f"Ticket Class: {attendee['ticket_class_name']}")
-                print(f"Quantity of Tickets Purchased: {attendee['quantity']}")
                 attendee_name = attendee['profile']['name']
                 ticket_class = attendee['ticket_class_name']
-                tickets = attendee['quantity']
                 break
 
     else:
         # Handle the error
         print("Error: {} - {}".format(eventAttendees.status_code, response.content))
 
-    #tickets = count_objects_with_email(attendees, email)
-
-    row_data = [venue, event_date + " " + event_time, email, "EventBrite", event_time, ticket_class, first_name, last_name, tickets]
+    total_tickets = sum(attendee["quantity"] for attendee in attendees if attendee["order_id"] == order_id)
+    print(f"Total Tickets: {total_tickets}")
+    row_data = [venue, event_date + " " + event_time, email, "EventBrite", event_time, ticket_class, first_name, last_name, total_tickets]
 
     if event_name not in batch_data:
         batch_data[event_name] = []
