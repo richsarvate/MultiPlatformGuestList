@@ -143,8 +143,12 @@ def iterate_through_orders(orders):
         print("Error: {} - {}".format(eventAttendees.status_code, response.content))
 
     total_tickets = sum(attendee["quantity"] for attendee in attendees["attendees"] if attendee["order_id"] == order_id)
+
+    if "pair" in ticket_class.lower():
+        total_tickets *= 2
+
     print(f"Total Tickets: {total_tickets}")
-    
+
     row_data = [venue, event_date + " " + event_time, email, "EventBrite", event_time, ticket_class, first_name, last_name, total_tickets]
 
     if event_name not in batch_data:
