@@ -15,11 +15,10 @@ current_time = datetime.utcnow().isoformat()[:-6] + "Z"
 interval = config.SCRIPT_INTERVAL
 
 if len(sys.argv) > 1:
-    interval = sys.argv[1]
     try:
         # Example: Treat it as an integer
-        number = int(interval)
-        print(f"The first argument as a number is: {number}")
+        interval = int(sys.argv[1])
+        print(f"The first argument as a number is: {interval}")
     except ValueError:
         # If it’s not a number, treat it as a string
         print(f"The first argument as a string is: {interval}")
