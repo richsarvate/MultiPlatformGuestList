@@ -5,14 +5,29 @@ from datetime import datetime, timedelta
 from insertIntoGoogleSheet import insert_data_into_google_sheet
 from getVenueAndDate import get_venue,extract_venue_name, extract_date, extract_time
 import config
+import sys
 
 print(datetime.utcnow().isoformat()[:-6] + "Z");
 
 # Calculate the timestamp for the current time
 current_time = datetime.utcnow().isoformat()[:-6] + "Z"
 
+interval = config.SCRIPT_INTERVAL
+
+if len(sys.argv) > 1:
+    interval = sys.argv[1]
+    try:
+        # Example: Treat it as an integer
+        number = int(interval)
+        print(f"The first argument as a number is: {number}")
+    except ValueError:
+        # If it’s not a number, treat it as a string
+        print(f"The first argument as a string is: {interval}")
+else:
+    print("Please provide an argument.")
+
 # Calculate the timestamp for 5 minutes ago
-last_run = (datetime.utcnow() - timedelta(minutes=config.SCRIPT_INTERVAL)).isoformat()[:-6] + "Z"
+last_run = (datetime.utcnow() - timedelta(minutes=interval)).isoformat()[:-6] + "Z"
 
 # Define the URL for the API request with the "modifiedAfter" argument set to 5 minutes ago
 url = f"https://api.squarespace.com/1.0/commerce/orders?modifiedAfter={last_run}&modifiedBefore={current_time}"
