@@ -4,12 +4,26 @@ from datetime import datetime, timedelta
 from insertIntoGoogleSheet import insert_data_into_google_sheet
 from getVenueAndDate import get_venue
 import config
+import sys
 
 # Get the current date
 current_date = datetime.now()
 
+interval = config.SCRIPT_INTERVAL
+
+if len(sys.argv) > 1:
+    try:
+        # Example: Treat it as an integer
+        interval = int(sys.argv[1])
+        print(f"The first argument as a number is: {interval}")
+    except ValueError:
+        # If it’s not a number, treat it as a string
+        print(f"The first argument as a string is: {interval}")
+else:
+    print("Please provide an argument.")
+
 # Calculate the date that is 14 days from now
-last_run = current_date - timedelta(minutes=config.SCRIPT_INTERVAL)
+last_run = current_date - timedelta(minutes=interval)
 
 changed_since = last_run.strftime("%Y-%m-%dT%H:%M:%SZ")
 
