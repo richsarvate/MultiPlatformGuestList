@@ -36,7 +36,7 @@ def insert_data_into_google_sheet(batch_data):
 
     for show in batch_data:
         venue = batch_data[show][0][0]
-        sheet_title = get_city(venue) + " " + venue
+        sheet_title = get_city(venue) + "-" + venue
 
         print(sheet_title)
         try:
