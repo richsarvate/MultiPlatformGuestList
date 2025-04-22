@@ -6,6 +6,7 @@ from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
 from datetime import datetime 
 import re  # Add this line
 from addEmailToMailerLite import batch_add_contacts_to_mailerlite
+from getVenueAndDate import get_city
 
 #batch_data example:
 #batch_data = {
@@ -34,7 +35,8 @@ def insert_data_into_google_sheet(batch_data):
     service = build('sheets', 'v4', credentials=creds)
 
     for show in batch_data:
-        sheet_title = batch_data[show][0][0]
+        venue = batch_data[show][0][0]
+        sheet_title = get_city(venue) + " " + venue
 
         print(sheet_title)
         try:

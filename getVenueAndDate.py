@@ -13,6 +13,8 @@ def get_city(string):
         city = 'SF'
     elif venue_lower in ['stowaway', 'citizen', 'barber','townhouse']:
         city = 'LA'
+    elif venue_lower in ['blind barber fulton market']:
+        city = 'CHI'
     else:
         city = 'Unknown'  # If the venue does not match any of the specified strings
     
