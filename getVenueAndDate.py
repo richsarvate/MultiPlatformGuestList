@@ -1,6 +1,19 @@
 import re
-from datetime import datetime
+from datetime import datetime, date
 from dateutil import parser
+
+def append_year_to_show_date(show_date):
+    today = date.today()
+    current_year = today.year
+    
+    # Parse the date string
+    date_obj = parser.parse(show_date, fuzzy=True)
+    show_month_day = date_obj.date().replace(year=current_year)
+    
+    # Compare with today
+    year = current_year if show_month_day >= today else current_year + 1
+    
+    return f"{show_date} {year}"
 
 def get_city(string):
     venue = get_venue(string)

@@ -6,7 +6,7 @@ from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
 from datetime import datetime 
 import re  # Add this line
 from addEmailToMailerLite import batch_add_contacts_to_mailerlite
-from getVenueAndDate import get_city
+from getVenueAndDate import get_city, append_year_to_show_date
 
 #batch_data example:
 #batch_data = {
@@ -45,11 +45,12 @@ def insert_data_into_google_sheet(batch_data):
             sheet = gc.create(sheet_title, folder_id=config.GUEST_LIST_FOLDER_ID)
 
         show_date = batch_data[show][0][1]
+        show_date_plus_year = append_year_to_show_date(show_date)
         print(show_date)
         try:
-            worksheet = sheet.worksheet(show_date)
+            worksheet = sheet.worksheet(show_date_plus_year)
         except gspread.WorksheetNotFound:
-            worksheet = sheet.add_worksheet(show_date, rows=100, cols=20)
+            worksheet = sheet.add_worksheet(show_date_plus_year, rows=100, cols=20)
 
         headers = ["venue", "date", "email", "source", "time", "type", "firstname", "lastname", "tickets", "total:"]
 
