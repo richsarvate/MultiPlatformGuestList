@@ -1,14 +1,32 @@
 import re
 from datetime import datetime, date
 from dateutil import parser
+from zoneinfo import ZoneInfo
+
+#def append_year_to_show_date(show_date):
+#    today = date.today()
+#    current_year = today.year
+#    
+#    # Parse the date string
+#    date_obj = parser.parse(show_date, fuzzy=True)
+#    show_month_day = date_obj.date().replace(year=current_year)
+#    
+#    # Compare with today
+#    year = current_year if show_month_day >= today else current_year + 1
+#    
+#    return f"{show_date} {year}"
 
 def append_year_to_show_date(show_date):
-    today = date.today()
+    # Get current date in PST/PDT
+    today = datetime.now(ZoneInfo("America/Los_Angeles")).date()
     current_year = today.year
     
-    # Parse the date string
-    date_obj = parser.parse(show_date, fuzzy=True)
-    show_month_day = date_obj.date().replace(year=current_year)
+    # Parse show date (e.g., "Friday April 25th")
+    try:
+        date_obj = parser.parse(show_date, fuzzy=True, dayfirst=False)
+        show_month_day = date_obj.date().replace(year=current_year)
+    except ValueError:
+        raise ValueError(f"Invalid show date format: {show_date}. Expected 'Friday April 25th'.")
     
     # Compare with today
     year = current_year if show_month_day >= today else current_year + 1
