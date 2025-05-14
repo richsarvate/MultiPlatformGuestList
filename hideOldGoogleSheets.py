@@ -13,42 +13,26 @@ def parse_datetime_from_title(title):
     if len(parts) < 2:
         return None  # Invalid format
     
-    # The date and time part (e.g., "October 9th 8pm")
+    # The date and time part (e.g., "October 9th 8pm 2025")
     datetime_str = parts[1]
 
     # Remove ordinal suffixes (st, nd, rd, th) from the day part
     datetime_str = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', datetime_str)
 
-    # Try to parse the string with the date and time
+    # Try to parse the string with or without a year
     try:
-        # Parse the string with the format "Month Day Time" (e.g., "October 9 8pm")
-        parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p')
-        # Add the current year to the parsed datetime
-        parsed_datetime = parsed_datetime.replace(year=datetime.now().year)
-        return parsed_datetime
+        # First, try parsing with a year (e.g., "October 9 8pm 2025")
+        try:
+            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p %Y')
+            return parsed_datetime
+        except ValueError:
+            # If parsing with year fails, try without (e.g., "October 9 8pm")
+            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p')
+            # Add the current year to the parsed datetime
+            parsed_datetime = parsed_datetime.replace(year=datetime.now().year)
+            return parsed_datetime
     except ValueError:
         return None  # Return None if parsing fails
-
-def parse_date_from_title(title):
-    # Split the title to remove the day name
-    parts = title.split(" ", 1)
-    if len(parts) < 2:
-        return None  # Invalid format
-
-    date_str = parts[1]
-
-    # Remove ordinal suffixes (st, nd, rd, th) from the day part
-    date_str = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', date_str)
-
-
-    # Parse the date
-    try:
-        parsed_date =  datetime.strptime(date_str, '%B %d').date()
-        current_year = datetime.now().year
-        parsed_date = parsed_date.replace(year=current_year)
-        return parsed_date
-    except ValueError:
-        return None
 
 def hide_old_worksheets(folder_id):
     # Google Drive and Sheets scopes
