@@ -26,9 +26,13 @@ def parse_datetime_from_title(title):
             parsed_datetime = datetime.strptime(datetime_str, '%B %d %I:%M%p %Y')
             return parsed_datetime
         except ValueError:
-            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I:%M%p')
-            parsed_datetime = parsed_datetime.replace(year=datetime.now().year)
-            return parsed_datetime
+            try:
+                parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p %Y')
+                return parsed_datetime
+            except ValueError:
+                parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p')
+                parsed_datetime = parsed_datetime.replace(year=datetime.now().year)
+                return parsed_datetime
 
 #        try:
 #            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p %Y')
