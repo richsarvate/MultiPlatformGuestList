@@ -23,14 +23,22 @@ def parse_datetime_from_title(title):
     try:
         # First, try parsing with a year (e.g., "October 9 8pm 2025")
         try:
-            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p %Y')
+            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I:%M%p %Y')
             return parsed_datetime
         except ValueError:
-            # If parsing with year fails, try without (e.g., "October 9 8pm")
-            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p')
-            # Add the current year to the parsed datetime
+            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I:%M%p')
             parsed_datetime = parsed_datetime.replace(year=datetime.now().year)
             return parsed_datetime
+
+#        try:
+#            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p %Y')
+#            return parsed_datetime
+#        except ValueError:
+#            # If parsing with year fails, try without (e.g., "October 9 8pm")
+#            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p')
+#            # Add the current year to the parsed datetime
+#            parsed_datetime = parsed_datetime.replace(year=datetime.now().year)
+#            return parsed_datetime
     except ValueError:
         return None  # Return None if parsing fails
 
