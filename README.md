@@ -15,6 +15,7 @@ This tool automates the full guest list workflow for comedy shows across seven U
 - Retrieves orders from:
   - ✅ **Eventbrite** (via API)
   - ✅ **Squarespace** (via API)
+  - ✅ **BucketListers** (via cookie authentication)
   - ✅ **Goldstar**, **Fever**, **DoMORE** (via Gmail parsing)
 - Consolidates guest lists into Google Sheets with:
   - Totals, checkboxes, and summaries
