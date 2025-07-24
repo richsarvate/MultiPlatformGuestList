@@ -194,6 +194,20 @@ def convert_date_from_any_format(date_str):
     except ValueError:
         return None  # Skip non-date entries that cannot be parsed
 
+def format_time(time_str):
+    """Convert time from 'HH:MM AM/PM' to 'H:MMam/pm' or 'Ham/pm' if minutes are '00'."""
+    try:
+        # Parse the time string (e.g., "02:30 PM")
+        time_obj = datetime.strptime(time_str, "%I:%M %p")
+        # If minutes are 00, return just the hour (e.g., "2pm")
+        if time_obj.minute == 0:
+            return time_obj.strftime("%I%p").lower().lstrip("0")
+        # Otherwise, return hour and minutes (e.g., "2:30pm")
+        return time_obj.strftime("%I:%M%p").lower().lstrip("0")
+    except ValueError:
+        logger.error(f"Invalid time format: {time_str}")
+        return time_str
+
 def convert_date_format(date_str):
     if date_str == 'Date':
         return None  # Skip headers or non-date entries

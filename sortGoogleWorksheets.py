@@ -4,114 +4,161 @@ from googleapiclient.discovery import build
 import config
 import re
 from datetime import datetime
+from time import sleep
 from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
+import logging
+
+# Configure logging to console and file
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('script.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 def parse_datetime_from_title(title):
-    # Remove the day of the week (e.g., "Wednesday")
+    logger.debug(f"Parsing title: {title}")
     parts = title.split(" ", 1)
     if len(parts) < 2:
-        return None  # Invalid format
+        logger.warning(f"Invalid title format: {title}")
+        return None
     
-    # The date and time part (e.g., "October 9th 8pm")
     datetime_str = parts[1]
-
-    # Remove ordinal suffixes (st, nd, rd, th) from the day part
     datetime_str = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', datetime_str)
-
-    # Try to parse the string with the date and time
+    
     try:
-        # Parse the string with the format "Month Day Time" (e.g., "October 9 8pm")
-        parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p')
-        # Add the current year to the parsed datetime
-        parsed_datetime = parsed_datetime.replace(year=datetime.now().year)
+        # Try parsing with year (e.g., "August 1 9pm 2025")
+        parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p %Y')
+        logger.debug(f"Parsed datetime: {parsed_datetime}")
         return parsed_datetime
     except ValueError:
-        return None  # Return None if parsing fails
+        try:
+            # Fallback to no year (assume current year)
+            parsed_datetime = datetime.strptime(datetime_str, '%B %d %I%p')
+            parsed_datetime = parsed_datetime.replace(year=datetime.now().year)
+            logger.debug(f"Parsed datetime (no year): {parsed_datetime}")
+            return parsed_datetime
+        except ValueError:
+            logger.warning(f"Failed to parse datetime from title: {title}")
+            return None
 
 def parse_date_from_title(title):
-    # Split the title to remove the day name
+    logger.debug(f"Parsing date from title: {title}")
     parts = title.split(" ", 1)
     if len(parts) < 2:
-        return None  # Invalid format
-
-    date_str = parts[1]
-
-    # Remove ordinal suffixes (st, nd, rd, th) from the day part
-    date_str = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', date_str)
-
-
-    # Parse the date
-    try:
-        parsed_date =  datetime.strptime(date_str, '%B %d').date()
-        current_year = datetime.now().year
-        parsed_date = parsed_date.replace(year=current_year)
-        return parsed_date
-    except ValueError:
+        logger.warning(f"Invalid title format: {title}")
         return None
 
+    date_str = parts[1]
+    date_str = re.sub(r'(\d+)(st|nd|rd|th)', r'\1', date_str)
+
+    try:
+        # Try parsing with year (e.g., "August 1 2025")
+        parsed_date = datetime.strptime(date_str, '%B %d %Y').date()
+        logger.debug(f"Parsed date: {parsed_date}")
+        return parsed_date
+    except ValueError:
+        try:
+            # Fallback to no year
+            parsed_date = datetime.strptime(date_str, '%B %d').date()
+            current_year = datetime.now().year
+            parsed_date = parsed_date.replace(year=current_year)
+            logger.debug(f"Parsed date (no year): {parsed_date}")
+            return parsed_date
+        except ValueError:
+            logger.warning(f"Failed to parse date from title: {title}")
+            return None
+
 def arrange_worksheets_in_ascending_order(spreadsheet):
+    logger.info(f"Processing spreadsheet: {spreadsheet.title}")
     scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     creds = Credentials.from_service_account_file(config.GOOGLE_CREDS_FILE, scopes=scopes)
     gc = gspread.Client(auth=creds)
-
+    
     try:
-
-        worksheets = spreadsheet.worksheets()
-        # Create a list of tuples (worksheet, date) and sort it by date
+        worksheets = [ws for ws in spreadsheet.worksheets() if not ws.isSheetHidden]
+        logger.info(f"Found {len(worksheets)} unhidden worksheets: {[ws.title for ws in worksheets]}")
+        
+        # Create sorted list of worksheets by date
         sorted_worksheets = sorted(
             [(ws, parse_datetime_from_title(ws.title) or datetime.min) for ws in worksheets],
             key=lambda x: x[1]
         )
-        # Iterate over the sorted worksheets and update their index
-        for index, (worksheet, _) in enumerate(sorted_worksheets):
-            requests = {
-                "requests": [
-                    {
-                        "updateSheetProperties": {
-                            "properties": {
-                                "sheetId": worksheet.id,
-                                "index": index
-                            },
-                            "fields": "index"
-                        }
-                    }
-                ]
-            }
-            spreadsheet.batch_update(requests)
+        logger.info(f"Sorted worksheets: {[ws.title for ws, _ in sorted_worksheets]}")
+        
+        # Check if reordering is needed
+        current_order = [ws.title for ws in worksheets]
+        sorted_order = [ws.title for ws, _ in sorted_worksheets]
+        if current_order == sorted_order:
+            logger.info("Worksheets already in correct order, skipping update")
+            return
 
+        # Prepare batch update
+        requests = [
+            {
+                "updateSheetProperties": {
+                    "properties": {"sheetId": ws.id, "index": idx},
+                    "fields": "index"
+                }
+            } for idx, (ws, _) in enumerate(sorted_worksheets)
+        ]
+        
+        if requests:
+            logger.info(f"Submitting batch update for {len(requests)} worksheets")
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    spreadsheet.batch_update({"requests": requests})
+                    logger.info("Successfully updated worksheet order")
+                    break
+                except APIError as e:
+                    if 'rate limit' in str(e).lower() and attempt < max_retries - 1:
+                        logger.warning(f"Rate limit hit, retrying after {2 ** attempt}s")
+                        sleep(2 ** attempt)
+                    else:
+                        logger.error(f"API error: {e}")
+                        raise e
+        else:
+            logger.info("No updates needed for worksheets")
+            
     except (APIError, SpreadsheetNotFound, WorksheetNotFound) as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"Error processing spreadsheet {spreadsheet.title}: {e}")
 
 def sort_worksheets(folder_id):
-    # Google Drive and Sheets scopes
+    logger.info(f"Starting sort_worksheets for folder ID: {folder_id}")
     scopes = [
         'https://www.googleapis.com/auth/spreadsheets',
         'https://www.googleapis.com/auth/drive'
     ]
-
-    # Authorize and create a client
     creds = Credentials.from_service_account_file(config.GOOGLE_CREDS_FILE, scopes=scopes)
     gc = gspread.Client(auth=creds)
     drive_service = build('drive', 'v3', credentials=creds)
+    
+    try:
+        response = drive_service.files().list(
+            q=f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.spreadsheet'",
+            spaces='drive',
+            fields='files(id, name)'
+        ).execute()
+        files = response.get('files', [])
+        logger.info(f"Found {len(files)} spreadsheets in folder")
+        
+        for file in files:
+            try:
+                logger.info(f"Opening spreadsheet: {file['name']} (ID: {file['id']})")
+                spreadsheet = gc.open_by_key(file['id'])
+                arrange_worksheets_in_ascending_order(spreadsheet)
+                sleep(1)  # Delay to avoid rate limits
+            except (APIError, SpreadsheetNotFound, WorksheetNotFound) as e:
+                logger.error(f"Error processing file {file['name']}: {e}")
+                
+    except Exception as e:
+        logger.error(f"Error listing files in folder {folder_id}: {e}")
 
-    # Get current date
-    current_date = datetime.now().date()
-
-    # Get all spreadsheets in the specified folder
-    response = drive_service.files().list(q=f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.spreadsheet'",
-                                          spaces='drive',
-                                          fields='files(id, name)').execute()
-
-    for file in response.get('files', []):
-        try:
-            # Open the spreadsheet
-            spreadsheet = gc.open_by_key(file['id'])
-
-            arrange_worksheets_in_ascending_order(spreadsheet) 
-
-        except (APIError, SpreadsheetNotFound, WorksheetNotFound) as e:
-            print(f"An error occurred: {e}")
-
-# Call the function with your folder ID
-sort_worksheets(config.GUEST_LIST_FOLDER_ID)
-
+if __name__ == "__main__":
+    logger.info("Script started")
+    sort_worksheets(config.GUEST_LIST_FOLDER_ID)
+    logger.info("Script completed")
