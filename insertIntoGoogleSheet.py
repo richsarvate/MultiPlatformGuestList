@@ -5,7 +5,7 @@ from googleapiclient.discovery import build
 from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
 from datetime import datetime 
 import re  # Add this line
-from addEmailToMailerLite import batch_add_contacts_to_mailerlite
+from addContactsToMongoDB import batch_add_contacts_to_mongodb
 from getVenueAndDate import get_city, append_year_to_show_date
 
 #batch_data example:
@@ -22,7 +22,7 @@ from getVenueAndDate import get_city, append_year_to_show_date
 
 def insert_data_into_google_sheet(batch_data):
 
-    batch_add_contacts_to_mailerlite(emailsToAdd=batch_data)
+    batch_add_contacts_to_mongodb(batch_data)
     
     # Replace with your Google Sheets credentials JSON file path
     credentials_file = "creds.json"  # Make sure the file path is correct

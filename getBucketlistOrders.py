@@ -35,7 +35,7 @@ except IOError as e:
 logger = logging.getLogger(__name__)
 
 # Load configuration from config.json
-CONFIG_FILE = "bucketlistConfig.json"
+CONFIG_FILE = "/home/ec2-user/GuestListScripts/bucketlistConfig.json"
 try:
     with open(CONFIG_FILE, 'r') as f:
         config = json.load(f)
@@ -287,7 +287,6 @@ def main():
                         first_name,
                         last_name,
                         ticket_quantity,
-                        ""
                     ])
                     store_transaction({
                         "transactionId": transaction_id,
