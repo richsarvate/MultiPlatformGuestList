@@ -25,6 +25,10 @@ def get_time_interval():
     
     return interval
 
+def check_mongo_only_flag():
+    """Check if --mongo-only flag is present in command line arguments"""
+    return '--mongo-only' in sys.argv
+
 def calculate_time_range(interval_minutes):
     """Calculate the time range for API request"""
     current_time = datetime.utcnow().isoformat()[:-6] + "Z"
@@ -34,8 +38,17 @@ def calculate_time_range(interval_minutes):
     return last_run, current_time
 
 def fetch_squarespace_orders(last_run, current_time):
-    """Fetch orders from Squarespace API"""
-    url = f"https://api.squarespace.com/1.0/commerce/orders?modifiedAfter={last_run}&modifiedBefore={current_time}"
+    """Fetch orders from Squarespace API with pagination support"""
+    from datetime import datetime
+    import pytz
+    
+    # Convert date strings to datetime objects for comparison
+    last_run_dt = datetime.fromisoformat(last_run.replace('Z', '+00:00'))
+    current_time_dt = datetime.fromisoformat(current_time.replace('Z', '+00:00'))
+    
+    all_orders = []
+    cursor = None
+    page_count = 0
     
     headers = {
         "Authorization": f"Bearer {config.SQUARESPACE_API_KEY}",
@@ -43,15 +56,63 @@ def fetch_squarespace_orders(last_run, current_time):
     }
     
     logger.info("Making API request to Squarespace")
-    response = requests.get(url, headers=headers)
     
-    if response.status_code == 200:
-        data = response.json()
-        logger.info(f"Successfully fetched {len(data.get('result', []))} orders")
-        return data
-    else:
-        logger.error(f"Failed to fetch data. Status code: {response.status_code}")
-        return None
+    while True:
+        # Build URL - use date filters only for first page, cursor only for subsequent pages
+        if cursor:
+            url = f"https://api.squarespace.com/1.0/commerce/orders?cursor={cursor}"
+        else:
+            url = f"https://api.squarespace.com/1.0/commerce/orders?modifiedAfter={last_run}&modifiedBefore={current_time}"
+        
+        logger.info(f"Fetching page {page_count + 1}" + (f" (cursor: {cursor[:20]}...)" if cursor else " (with date filters)"))
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 200:
+            data = response.json()
+            page_orders = data.get('result', [])
+            
+            # If using cursor (not first page), filter by date client-side
+            if cursor:
+                filtered_orders = []
+                for order in page_orders:
+                    modified_on = order.get('modifiedOn', '')
+                    if modified_on:
+                        try:
+                            order_modified_dt = datetime.fromisoformat(modified_on.replace('Z', '+00:00'))
+                            if last_run_dt <= order_modified_dt <= current_time_dt:
+                                filtered_orders.append(order)
+                        except ValueError:
+                            # If date parsing fails, include the order to be safe
+                            filtered_orders.append(order)
+                
+                # If no orders match our date range, we've gone too far back
+                if not filtered_orders and page_orders:
+                    logger.info("No orders in date range found on this page, stopping pagination")
+                    break
+                    
+                page_orders = filtered_orders
+            
+            all_orders.extend(page_orders)
+            page_count += 1
+            
+            logger.info(f"Page {page_count}: fetched {len(page_orders)} orders in date range (total so far: {len(all_orders)})")
+            
+            # Check if there are more pages
+            pagination = data.get('pagination', {})
+            if pagination.get('hasNextPage', False):
+                cursor = pagination.get('nextPageCursor')
+                if not cursor:
+                    logger.warning("hasNextPage is True but no nextPageCursor found, stopping pagination")
+                    break
+            else:
+                logger.info("No more pages to fetch")
+                break
+        else:
+            logger.error(f"Failed to fetch data. Status code: {response.status_code}, Response: {response.text}")
+            return None
+    
+    logger.info(f"Successfully fetched {len(all_orders)} total orders across {page_count} pages")
+    return {"result": all_orders}
 
 def extract_guest_data_from_order(order):
     """
@@ -104,7 +165,7 @@ def extract_guest_data_from_order(order):
             "transaction_id": order_id,
             "customer_id": customer_email,  # Using email as customer ID
             "payment_method": "Squarespace",
-            "entry_code": None,  # Could be added if available
+            "entry_code": item.get('sku', '') or f"SS_{order_number}_{item.get('variantId', '')}",  # Create consistent entry code
             "notes": f"Order created: {created_on}, SKU: {item.get('sku', '')}"
         }
         
@@ -118,6 +179,11 @@ def extract_guest_data_from_order(order):
 def process_squarespace_orders():
     """Main function to process Squarespace orders"""
     logger.info("Starting Squarespace order processing")
+    
+    # Check for mongo-only flag
+    mongo_only = check_mongo_only_flag()
+    if mongo_only:
+        logger.info("Running in MONGO-ONLY mode - skipping Google Sheets integration")
     
     # Get time interval and calculate range
     interval = get_time_interval()
@@ -144,13 +210,28 @@ def process_squarespace_orders():
     if all_guests:
         logger.info(f"Processing {len(all_guests)} guests total")
         
-        # Use the new efficient insert function
-        insert_guest_data_efficient(all_guests)
-        
-        logger.info("Successfully processed all Squarespace orders")
+        if mongo_only:
+            # Only save to MongoDB, skip Google Sheets
+            from insertIntoGoogleSheet import _save_comprehensive_data_to_mongodb
+            _save_comprehensive_data_to_mongodb(all_guests)
+            logger.info("Successfully saved data to MongoDB only")
+        else:
+            # Use the full efficient insert function (MongoDB + Google Sheets)
+            insert_guest_data_efficient(all_guests)
+            logger.info("Successfully processed all Squarespace orders")
     else:
         logger.info("No guests to process")
 
 if __name__ == "__main__":
     print(f"Squarespace Orders Sync - {datetime.utcnow().isoformat()[:-6]}Z")
+    if '--help' in sys.argv or '-h' in sys.argv:
+        print("\nUsage: python3 getSquarespaceOrders.py [interval_minutes] [--mongo-only]")
+        print("\nOptions:")
+        print("  interval_minutes  Time interval to fetch orders (default: from config)")
+        print("  --mongo-only      Save data only to MongoDB, skip Google Sheets")
+        print("\nExamples:")
+        print("  python3 getSquarespaceOrders.py 60          # Fetch last 60 minutes")
+        print("  python3 getSquarespaceOrders.py 10080 --mongo-only  # Fetch last week, MongoDB only")
+        sys.exit(0)
+    
     process_squarespace_orders()

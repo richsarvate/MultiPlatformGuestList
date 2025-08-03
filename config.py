@@ -13,3 +13,11 @@ GMAIL_CREDS_FILE="/home/ec2-user/GuestListScripts/gmailApiCreds.json"
 GMAIL_TOKEN_PATH="/home/ec2-user/GuestListScripts/token.pickle"
 
 GUEST_LIST_FOLDER_ID = "1dFTdMM97GwlnMvLpEfegyKUp39D6333i"
+
+# Logging configuration
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)

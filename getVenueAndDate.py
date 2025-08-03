@@ -168,10 +168,18 @@ def extract_date(product_name):
 def convert_date_from_any_format(date_str):
     if date_str == 'Date':
         return None  # Skip headers or non-date entries
+    
+    if not date_str:
+        return None  # Handle empty strings
 
     try:
-        # Using dateutil.parser to parse the date string
-        date_object = parser.parse(date_str)
+        # First, try to handle MM-DD-YYYY format explicitly (common for DoMORE)
+        if re.match(r'\d{2}-\d{2}-\d{4}', date_str):
+            month, day, year = date_str.split('-')
+            date_object = datetime(int(year), int(month), int(day))
+        else:
+            # Fallback to dateutil.parser for other formats
+            date_object = parser.parse(date_str)
 
         day = date_object.day
         month_names = [
@@ -191,7 +199,8 @@ def convert_date_from_any_format(date_str):
 
         formatted_date = f"{day_of_week} {month_name} {day}{suffix}"
         return formatted_date
-    except ValueError:
+    except (ValueError, IndexError) as e:
+        print(f"Warning: Could not parse date '{date_str}': {e}")
         return None  # Skip non-date entries that cannot be parsed
 
 def format_time(time_str):
