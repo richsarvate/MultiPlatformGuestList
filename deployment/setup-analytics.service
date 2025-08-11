@@ -1,0 +1,21 @@
+[Unit]
+Description=Setup Comedy Analytics Dashboard
+After=network.target
+
+[Service]
+Type=notify
+User=ec2-user
+Group=ec2-user
+RuntimeDirectory=setup-analytics
+WorkingDirectory=/home/ec2-user/GuestListScripts
+Environment=PATH=/home/ec2-user/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/ec2-user/.local/bin/gunicorn --config gunicorn.conf.py wsgi:app
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
