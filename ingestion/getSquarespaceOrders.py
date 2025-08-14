@@ -31,6 +31,10 @@ def check_mongo_only_flag():
     """Check if --mongo-only flag is present in command line arguments"""
     return '--mongo-only' in sys.argv
 
+def check_debug_only_flag():
+    """Check if --debug-only flag is present in command line arguments"""
+    return '--debug-only' in sys.argv
+
 def calculate_time_range(interval_minutes):
     """Calculate the time range for API request"""
     current_time = datetime.utcnow().isoformat()[:-6] + "Z"
@@ -212,6 +216,25 @@ def process_squarespace_orders():
     if all_guests:
         logger.info(f"Processing {len(all_guests)} guests total")
         
+        # Check for debug-only mode
+        debug_only = check_debug_only_flag()
+        
+        if debug_only:
+            logger.info("=== DEBUG-ONLY MODE: Showing guest data without insertion ===")
+            for i, guest in enumerate(all_guests, 1):
+                print(f"\n--- Guest {i} ---")
+                print(f"Name: {guest.get('first_name')} {guest.get('last_name')}")
+                print(f"Email: {guest.get('email')}")
+                print(f"Venue: {guest.get('venue')}")
+                print(f"Show Date: {guest.get('show_date')}")
+                print(f"Source: {guest.get('source')}")
+                print(f"Order ID: {guest.get('order_id')}")
+                print(f"Tickets: {guest.get('tickets')}")
+                print(f"Total Price: {guest.get('total_price')}")
+                print(f"Phone: {guest.get('phone')}")
+            logger.info("=== END DEBUG DATA ===")
+            return
+        
         if mongo_only:
             # Only save to MongoDB, skip Google Sheets
             from insertIntoGoogleSheet import _save_comprehensive_data_to_mongodb
@@ -219,6 +242,8 @@ def process_squarespace_orders():
             logger.info("Successfully saved data to MongoDB only")
         else:
             # Use the full efficient insert function (MongoDB + Google Sheets)
+            logger.info("=== DEBUG: Using Squarespace dual-path (Sheets + MongoDB) ===")
+            logger.info(f"=== DEBUG: About to call insert_guest_data_efficient with {len(all_guests)} guests ===")
             insert_guest_data_efficient(all_guests)
             logger.info("Successfully processed all Squarespace orders")
     else:
@@ -227,13 +252,15 @@ def process_squarespace_orders():
 if __name__ == "__main__":
     print(f"Squarespace Orders Sync - {datetime.utcnow().isoformat()[:-6]}Z")
     if '--help' in sys.argv or '-h' in sys.argv:
-        print("\nUsage: python3 getSquarespaceOrders.py [interval_minutes] [--mongo-only]")
+        print("\nUsage: python3 getSquarespaceOrders.py [interval_minutes] [--mongo-only] [--debug-only]")
         print("\nOptions:")
         print("  interval_minutes  Time interval to fetch orders (default: from config)")
         print("  --mongo-only      Save data only to MongoDB, skip Google Sheets")
+        print("  --debug-only      Show order data without inserting to database or sheets")
         print("\nExamples:")
         print("  python3 getSquarespaceOrders.py 60          # Fetch last 60 minutes")
         print("  python3 getSquarespaceOrders.py 10080 --mongo-only  # Fetch last week, MongoDB only")
+        print("  python3 getSquarespaceOrders.py 1440 --debug-only   # Show last 24 hours data without inserting")
         sys.exit(0)
     
     process_squarespace_orders()

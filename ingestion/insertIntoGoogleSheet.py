@@ -363,51 +363,63 @@ def insert_guest_data_efficient(guest_data):
 
 def _save_comprehensive_data_to_mongodb(guest_data):
     """Save comprehensive guest data to MongoDB"""
-    logger.info(f"Converting {len(guest_data)} guests to MongoDB format")
+    logger.info(f"=== DEBUG: Starting MongoDB save for {len(guest_data)} guests ===")
     
-    # Convert intuitive format to the array format expected by batch_add_contacts_to_mongodb
-    batch_data = {}
-    
-    for guest in guest_data:
-        venue = guest.get('venue', '')
-        show_date = guest.get('show_date', '')
+    try:
+        # Convert intuitive format to the array format expected by batch_add_contacts_to_mongodb
+        batch_data = {}
         
-        # Create a show key (venue + date for grouping)
-        show_key = f"{venue} - {show_date}"
+        for guest in guest_data:
+            venue = guest.get('venue', '')
+            show_date = guest.get('show_date', '')
+            
+            # Create a show key (venue + date for grouping)
+            show_key = f"{venue} - {show_date}"
+            
+            if show_key not in batch_data:
+                batch_data[show_key] = []
+            
+            # Convert to array format that MongoDB function expects
+            # Array structure: [venue, date, email, source, time, type, firstname, lastname, tickets, phone, ...]
+            guest_array = [
+                venue,
+                show_date,
+                guest.get('email', ''),
+                guest.get('source', ''),
+                _extract_time_from_date(show_date),
+                guest.get('ticket_type', 'GA'),
+                guest.get('first_name', ''),
+                guest.get('last_name', ''),
+                guest.get('tickets', 1),
+                guest.get('phone', ''),
+                # Enhanced fields as additional array elements
+                guest.get('discount_code'),
+                guest.get('total_price'),
+                guest.get('order_id'),
+                guest.get('transaction_id'),
+                guest.get('customer_id'),
+                guest.get('payment_method'),
+                guest.get('entry_code'),
+                guest.get('notes')
+            ]
+            
+            batch_data[show_key].append(guest_array)
         
-        if show_key not in batch_data:
-            batch_data[show_key] = []
+        logger.info(f"Converted to {len(batch_data)} show groupings")
         
-        # Convert to array format that MongoDB function expects
-        # Array structure: [venue, date, email, source, time, type, firstname, lastname, tickets, phone, ...]
-        guest_array = [
-            venue,
-            show_date,
-            guest.get('email', ''),
-            guest.get('source', ''),
-            _extract_time_from_date(show_date),
-            guest.get('ticket_type', 'GA'),
-            guest.get('first_name', ''),
-            guest.get('last_name', ''),
-            guest.get('tickets', 1),
-            guest.get('phone', ''),
-            # Enhanced fields as additional array elements
-            guest.get('discount_code'),
-            guest.get('total_price'),
-            guest.get('order_id'),
-            guest.get('transaction_id'),
-            guest.get('customer_id'),
-            guest.get('payment_method'),
-            guest.get('entry_code'),
-            guest.get('notes')
-        ]
+        # Use existing MongoDB function with array format
+        logger.info("=== DEBUG: About to call batch_add_contacts_to_mongodb ===")
+        logger.info(f"=== DEBUG: batch_data keys: {list(batch_data.keys())} ===")
         
-        batch_data[show_key].append(guest_array)
-    
-    logger.info(f"Converted to {len(batch_data)} show groupings")
-    
-    # Use existing MongoDB function with array format
-    batch_add_contacts_to_mongodb(batch_data)
+        batch_add_contacts_to_mongodb(batch_data)
+        logger.info("=== DEBUG: batch_add_contacts_to_mongodb completed successfully ===")
+        
+    except Exception as e:
+        logger.error(f"=== DEBUG: MongoDB save operation FAILED: {e} ===")
+        logger.error(f"=== DEBUG: Exception type: {type(e).__name__} ===")
+        import traceback
+        logger.error(f"=== DEBUG: Full traceback: {traceback.format_exc()} ===")
+        raise
 
 def _extract_time_from_date(show_date):
     """Extract time portion from show date string"""

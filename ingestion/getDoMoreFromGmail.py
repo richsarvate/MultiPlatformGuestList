@@ -114,6 +114,10 @@ def check_force_refresh_flag():
     """Check if --force-refresh flag is present in command line arguments"""
     return '--force-refresh' in sys.argv
 
+def check_debug_only_flag():
+    """Check if --debug-only flag is present in command line arguments"""
+    return '--debug-only' in sys.argv
+
 def batch_add_contacts_to_mongodb(batch_data):
     """
     Add contacts to MongoDB in batch format compatible with mongo-only mode.
@@ -223,7 +227,7 @@ def click_button(url):
         return None, None
 
 
-def getEmails(days=None, mongo_only=False, force_refresh=False):
+def getEmails(days=None, mongo_only=False, force_refresh=False, debug_only=False):
     """Main function to fetch and process DoMORE emails from Gmail."""
     creds = None
 
@@ -455,12 +459,26 @@ def getEmails(days=None, mongo_only=False, force_refresh=False):
     if batch_data:
         logger.info(f"Processing {total_processed} total guests from {len(batch_data)} shows")
         
+        if debug_only:
+            # DEBUG MODE: Show data structure without inserting
+            logger.info("=== DEBUG-ONLY MODE: Showing extracted data ===")
+            for show_name, guest_list in batch_data.items():
+                logger.info(f"Show: {show_name}")
+                logger.info(f"Guests ({len(guest_list)}):")
+                for i, guest in enumerate(guest_list):
+                    logger.info(f"  Guest {i+1}: {guest}")
+            logger.info("=== END DEBUG DATA ===")
+            return
+        
         if mongo_only:
             # Save directly to MongoDB
+            logger.info("=== DEBUG: Using mongo-only path ===")
             batch_add_contacts_to_mongodb(batch_data)
             logger.info("Successfully saved data to MongoDB only")
         else:
             # Use original Google Sheets process
+            logger.info("=== DEBUG: Using default dual-path (Sheets + MongoDB) ===")
+            logger.info(f"=== DEBUG: About to call insert_data_into_google_sheet with {len(batch_data)} shows ===")
             insert_data_into_google_sheet(batch_data)
             logger.info("Successfully processed all DoMORE guest lists")
     else:
@@ -491,12 +509,15 @@ def main():
     # Check flags
     mongo_only = check_mongo_only_flag()
     force_refresh = check_force_refresh_flag()
+    debug_only = check_debug_only_flag()
     days = parse_days_parameter()
     
     if mongo_only:
         logger.info("Running in MONGO-ONLY mode - skipping Google Sheets integration")
     if force_refresh:
         logger.info("Running in FORCE-REFRESH mode - bypassing duplicate checks")
+    if debug_only:
+        logger.info("Running in DEBUG-ONLY mode - showing data without insertion")
     if days:
         logger.info(f"Using {days} days lookback period")
     
@@ -509,7 +530,7 @@ def main():
                 break
     
     try:
-        getEmails(days=days, mongo_only=mongo_only, force_refresh=force_refresh)
+        getEmails(days=days, mongo_only=mongo_only, force_refresh=force_refresh, debug_only=debug_only)
     except Exception as e:
         logger.error(f"Fatal error in main execution: {e}")
         sys.exit(1)

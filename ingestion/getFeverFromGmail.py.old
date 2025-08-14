@@ -185,24 +185,6 @@ def mark_email_processed(message_data, force_refresh=False):
         if 'client' in locals():
             client.close()
 
-def verify_guest_in_contacts_db(transaction_id):
-    """Verify if a guest with the given transaction_id exists in the contacts database."""
-    if not MONGO_URI:
-        return False
-    
-    try:
-        client = MongoClient(MONGO_URI)
-        db = client["guest_list_contacts"]
-        collection = db["contacts"]
-        exists = collection.find_one({"transaction_id": transaction_id})
-        return bool(exists)
-    except Exception as e:
-        logger.error(f"Error verifying guest in contacts DB: {str(e)}")
-        return False
-    finally:
-        if 'client' in locals():
-            client.close()
-
 def batch_add_contacts_to_mongodb_upsert(batch_data, force_refresh=False):
     """
     Batch adds contact data to MongoDB using upsert to prevent duplicates.
@@ -502,7 +484,6 @@ def getEmails(days=None, mongo_only=False, force_refresh=False, debug_only=False
     logger.info(f"Found {len(messages)} Fever reservation emails")
 
     batch_data = {}
-    processed_emails = []  # Track successfully processed emails for later marking
     total_processed = 0
     total_skipped = 0
 
@@ -579,17 +560,16 @@ def getEmails(days=None, mongo_only=False, force_refresh=False, debug_only=False
                     batch_data[venue][show_date_with_time] = []
                 batch_data[venue][show_date_with_time].append(guest_array)
 
-            # Store email data for later processing verification
-            processed_emails.append({
+            # Always mark email as processed and store transaction (using upsert)
+            mark_email_processed({
                 "messageId": msg_id,
                 "subject": subject,
                 "customerEmail": customer_email,
                 "customerName": f"{first_name} {last_name}",
                 "venue": venue,
                 "showDate": show_date_with_time,
-                "timestamp": datetime.utcnow(),
-                "transaction_id": msg_id  # Use msg_id as transaction_id for verification
-            })
+                "timestamp": datetime.utcnow()
+            }, force_refresh)
             
             store_fever_transaction({
                 "messageId": msg_id,
@@ -632,23 +612,12 @@ def getEmails(days=None, mongo_only=False, force_refresh=False, debug_only=False
             # Save directly to MongoDB using upsert for force_refresh
             batch_add_contacts_to_mongodb_upsert(batch_data, force_refresh)
             logger.info("Successfully saved data to MongoDB only")
-            
-            # Only mark emails as processed if their guest data exists in contacts DB
-            for email_data in processed_emails:
-                if verify_guest_in_contacts_db(email_data["transaction_id"]):
-                    mark_email_processed(email_data, force_refresh)
-                else:
-                    logger.warning(f"Guest data not found in contacts DB for email {email_data['messageId']}, email will remain unprocessed")
         else:
             # Use original Google Sheets process
             for venue in batch_data:
                 for date in batch_data[venue]:
                     insert_data_into_google_sheet({venue: batch_data[venue][date]})
             logger.info("Successfully processed all Fever reservations")
-            
-            # For Google Sheets mode, mark all emails as processed (original behavior)
-            for email_data in processed_emails:
-                mark_email_processed(email_data, force_refresh)
     else:
         logger.info("No new Fever reservations to process")
 

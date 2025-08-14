@@ -1,0 +1,45 @@
+# Copilot Ignore - Reduce context to prevent hanging
+
+# Virtual environments and Python cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs and temporary files (major source of context bloat)
+logs/
+*.log
+*.tmp
+*.temp
+
+# Git and version control
+.git/
+
+# Configuration files with sensitive data
+secrets/
+*.env
+*Config.json
+creds.json
+
+# Build outputs and cache
+dist/
+build/
+.cache/
+.next/
+.turbo/
+coverage/
+
+# Large data files
+*.db
+*.sqlite
+*.sql
+
+# Documentation (reduces Copilot processing)
+docs/
+*.md
+LICENSE
+
+# Temporarily allow ingestion files for editing
+!ingestion/**/*.py
+!getBucketlistOrders.py
