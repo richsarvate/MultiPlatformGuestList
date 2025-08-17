@@ -278,37 +278,84 @@ function showRevenueBreakdown() {
     }
 
     const breakdown = window.dashboard.uiManager.currentRevenueBreakdown;
-    const processingFees = window.dashboard.uiManager.currentProcessingFees;
+    const processingFees = window.dashboard.uiManager.currentProcessingFees || {};
 
-    console.log('Revenue breakdown data:', breakdown);
-    console.log('Processing fees data:', processingFees);
+    // Calculate totals
+    let totalGrossRevenue = 0;
+    let totalProcessingFees = 0;
+    let totalNetRevenue = 0;
 
-    const grossEl = document.getElementById('breakdown-gross');
-    const feesEl = document.getElementById('breakdown-fees');
-    const totalEl = document.getElementById('breakdown-total');
+    // Get source data - use by_source if available, otherwise fallback to source_breakdown
+    const sourceData = breakdown.by_source || {};
+    const revenueBySource = breakdown.source_breakdown?.by_revenue || breakdown.source_breakdown || {};
 
-    // Safe access with fallbacks
-    if (grossEl) grossEl.textContent = `$${(breakdown.gross_revenue || 0).toLocaleString()}`;
-    if (feesEl) feesEl.textContent = `$${(breakdown.processing_fees || 0).toLocaleString()}`;
-    if (totalEl) totalEl.textContent = `$${(breakdown.net_revenue || 0).toLocaleString()}`;
+    // Build detailed source breakdown HTML
+    let sourceBreakdownHtml = '';
+    Object.entries(revenueBySource).forEach(([source, grossRevenue]) => {
+        const processingFee = processingFees[source] 
+            ? (typeof processingFees[source] === 'object' ? processingFees[source].total : processingFees[source])
+            : 0;
+        const netRevenue = grossRevenue - processingFee;
+        
+        // Get ticket count from by_source structure
+        const ticketCount = sourceData[source]?.tickets || 'Unknown';
+        
+        // Calculate fee percentage for display
+        let feeDescription = '';
+        if (source === 'Squarespace') {
+            feeDescription = '(2.9% + $0.30 per transaction)';
+        } else if (source === 'Bucketlist' || source === 'Fever') {
+            feeDescription = '(25% platform fee)';
+        } else if (source === 'Eventbrite') {
+            feeDescription = '(3.7% + $1.79 per transaction)';
+        } else if (processingFee === 0) {
+            feeDescription = '(Free)';
+        }
 
-    const feesBreakdownEl = document.getElementById('fees-breakdown-details');
-    if (feesBreakdownEl && processingFees) {
-        let html = '';
-        Object.entries(processingFees).forEach(([source, feeData]) => {
-            const fee = typeof feeData === 'object' ? feeData.total : feeData;
-            if (fee > 0) {
-                html += `
-                    <div class="row">
-                        <div class="col-8">${source}:</div>
-                        <div class="col-4 text-right">$${fee.toLocaleString()}</div>
+        totalGrossRevenue += grossRevenue;
+        totalProcessingFees += processingFee;
+        totalNetRevenue += netRevenue;
+
+        sourceBreakdownHtml += `
+            <div class="mb-3 p-3" style="background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="mb-2">
+                    <strong style="color: #e9ecef; font-size: 1.05rem;">${source}: ${ticketCount} tickets</strong>
+                </div>
+                <div class="ps-3">
+                    <div class="d-flex justify-content-between py-1" style="color: #e9ecef;">
+                        <span>Gross Revenue:</span>
+                        <span style="font-weight: 600;">$${grossRevenue.toFixed(2)}</span>
                     </div>
-                `;
-            }
-        });
-        feesBreakdownEl.innerHTML = html;
-    }
+                    <div class="d-flex justify-content-between py-1" style="color: #fd7e83;">
+                        <span>Processing Fees: ${feeDescription}</span>
+                        <span style="font-weight: 600;">-$${processingFee.toFixed(2)}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 mt-2 pt-2" style="color: #51cf66; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <span style="font-weight: 600;">Net Revenue:</span>
+                        <span style="font-weight: 700;">$${netRevenue.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
 
+    // Calculate venue share and final net
+    const venueShareRate = breakdown.venue_cost?.rate || 30;
+    const venueShare = (totalNetRevenue * venueShareRate) / 100;
+    const finalNetRevenue = totalNetRevenue - venueShare;
+
+    // Populate modal elements
+    document.getElementById('total-gross-revenue').textContent = `$${totalGrossRevenue.toFixed(2)}`;
+    document.getElementById('source-breakdown-details').innerHTML = sourceBreakdownHtml;
+    
+    // Summary section
+    document.getElementById('summary-gross-revenue').textContent = `$${totalGrossRevenue.toFixed(2)}`;
+    document.getElementById('summary-processing-fees').textContent = `-$${totalProcessingFees.toFixed(2)}`;
+    document.getElementById('summary-net-revenue').textContent = `$${totalNetRevenue.toFixed(2)}`;
+    document.getElementById('summary-venue-share').textContent = `-$${venueShare.toFixed(2)}`;
+    document.getElementById('summary-final-net').textContent = `$${finalNetRevenue.toFixed(2)}`;
+
+    // Show modal
     const modal = new bootstrap.Modal(document.getElementById('revenueBreakdownModal'));
     modal.show();
 }

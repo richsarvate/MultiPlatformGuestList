@@ -151,7 +151,8 @@ class UIManager {
             gross_revenue: data.revenue_breakdown?.gross_revenue || data.total_revenue || 0,
             processing_fees: data.revenue_breakdown?.processing_fees || 0,
             net_revenue: data.net_revenue || 0,
-            source_breakdown: data.revenue_breakdown?.source_breakdown || {}
+            source_breakdown: data.revenue_breakdown?.source_breakdown || {},
+            by_source: data.by_source || {}
         };
         this.currentProcessingFees = data.processing_fees?.fees_by_source || {};
     }

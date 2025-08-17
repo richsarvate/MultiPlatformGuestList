@@ -196,8 +196,9 @@ def calculate_show_analytics(contacts: List[Dict], venue: str, show_date: str) -
         fees_by_source[source]['count'] += 1
     
     # Calculate venue cost and net revenue
-    venue_cost = calculate_venue_cost(venue, total_revenue)
-    net_revenue = total_revenue - processing_fees_total - venue_cost['amount']
+    net_revenue_after_fees = total_revenue - processing_fees_total
+    venue_cost = calculate_venue_cost(venue, net_revenue_after_fees)
+    net_revenue = net_revenue_after_fees - venue_cost['amount']
     
     # Format response
     return {
