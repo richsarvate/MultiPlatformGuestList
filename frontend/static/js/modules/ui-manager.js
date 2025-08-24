@@ -155,6 +155,7 @@ class UIManager {
             by_source: data.by_source || {}
         };
         this.currentProcessingFees = data.processing_fees?.fees_by_source || {};
+        this.currentShowData = { venue: data.venue, show_date: data.show_date };
     }
 
     updateHealthStatus(health) {

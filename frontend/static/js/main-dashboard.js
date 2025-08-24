@@ -355,6 +355,13 @@ function showRevenueBreakdown() {
     document.getElementById('summary-venue-share').textContent = `-$${venueShare.toFixed(2)}`;
     document.getElementById('summary-final-net').textContent = `$${finalNetRevenue.toFixed(2)}`;
 
+    // Update modal header with show date
+    const modalLabel = document.getElementById('revenueBreakdownModalLabel');
+    if (modalLabel && window.dashboard.uiManager.currentShowData) {
+        const { venue, show_date } = window.dashboard.uiManager.currentShowData;
+        modalLabel.textContent = `Revenue & Fee Analysis - ${venue} - ${show_date}`;
+    }
+
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('revenueBreakdownModal'));
     modal.show();
