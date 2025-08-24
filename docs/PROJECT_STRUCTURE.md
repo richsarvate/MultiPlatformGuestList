@@ -12,7 +12,6 @@ GuestListScripts/
 │   │   └── modules/                          # Modular JavaScript
 │   │       ├── api-client.js                 # Clean API calls
 │   │       ├── chart-manager.js              # Data visualization
-│   │       ├── comedian-manager.js           # Comedian UI (MongoDB only)
 │   │       └── venmo-manager.js              # Venmo payments
 │   └── templates/
 │       └── dashboard.html                    # Clean HTML template
@@ -21,8 +20,7 @@ GuestListScripts/
 │   ├── routes/                               # API endpoints by feature
 │   │   ├── api_routes.py                     # Health & utility endpoints
 │   │   ├── venue_routes.py                   # Venue operations
-│   │   ├── show_routes.py                    # Show analytics & breakdowns
-│   │   └── comedian_routes.py                # Comedian management
+│   │   └── show_routes.py                    # Show analytics & breakdowns
 │   ├── utils/                                # Business logic utilities
 │   │   ├── analytics_utils.py                # Revenue calculations
 │   │   ├── guest_utils.py                    # Guest data formatting

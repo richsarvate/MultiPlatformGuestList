@@ -162,7 +162,6 @@ def get_show_breakdown():
             'processing_fees': total_processing_fees,
             'net_revenue': analytics['total_revenue'] - total_processing_fees,
             'venue_cost': 0,  # Simplified for now
-            'comedian_cost': 0,  # Simplified for now
             'by_source': {item['_id']: {
                 'tickets': item['total_tickets'],
                 'attendees': item['total_attendees'],

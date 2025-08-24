@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from backend.database_service import db_service
-from backend.models import Contact, Comedian, validate_contact, validate_comedian, SyncMode
+from backend.models import Contact, validate_contact, SyncMode
 from ingestion.getVenueAndDate import get_city, append_year_to_show_date
 
 # Setup logging

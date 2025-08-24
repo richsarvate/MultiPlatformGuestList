@@ -63,6 +63,7 @@ gmailApiCreds.json
 gsheetcreds
 PersonalAccessToken
 token.pickle
+blt_cookie.txt
 
 # Temporary files
 *.tmp

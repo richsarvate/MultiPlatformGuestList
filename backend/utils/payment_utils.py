@@ -1,5 +1,5 @@
 """
-Payment Utilities - Handle venue and comedian payment operations
+Payment Utilities - Handle venue and performer payment operations
 """
 
 import logging
