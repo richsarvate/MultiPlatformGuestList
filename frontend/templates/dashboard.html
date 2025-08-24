@@ -12,10 +12,11 @@
     <!-- Clean modular JavaScript structure -->
     <script src="{{ url_for('static', filename='js/modules/api-client.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modules/chart-manager.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/modules/comedian-manager.js') }}"></script>
+
     <script src="{{ url_for('static', filename='js/modules/venmo-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modules/data-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modules/ui-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/comedian-manager.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main-dashboard.js') }}"></script>
     <style>
         body {
@@ -92,12 +93,8 @@
         .comedian-cost-card {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             color: white;
-            padding: 18px;
+            padding: 15px;
             border: 2px solid #e74c3c;
-            min-height: 280px;
-            /* Increased height for longer names */
-            max-width: none;
-            /* Allow card to expand */
         }
 
         .chart-container {
@@ -344,6 +341,142 @@
             border-color: #ff6b35 !important;
             box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25) !important;
         }
+
+        /* Comedian Modal Sports Car Styling */
+        #comedianTableBody input {
+            background: linear-gradient(135deg, #2d2d2d 0%, #404040 100%) !important;
+            border: 2px solid #ff6600 !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            padding: 10px 15px !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+        }
+
+        #comedianTableBody input:focus {
+            background: linear-gradient(135deg, #404040 0%, #555555 100%) !important;
+            border-color: #ff8533 !important;
+            box-shadow: 0 0 15px rgba(255, 102, 0, 0.6) !important;
+            transform: scale(1.02) !important;
+        }
+
+        #comedianTableBody .form-check-input {
+            background: linear-gradient(135deg, #333333 0%, #444444 100%) !important;
+            border: 3px solid #ff6600 !important;
+            border-radius: 6px !important;
+            width: 24px !important;
+            height: 24px !important;
+            cursor: pointer !important;
+        }
+
+        #comedianTableBody .form-check-input:checked {
+            background: linear-gradient(45deg, #ff6600, #ff8533) !important;
+            border-color: #ff6600 !important;
+            box-shadow: 0 0 10px rgba(255, 102, 0, 0.8) !important;
+        }
+
+        #comedianTableBody .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #e55661) !important;
+            border: 2px solid #dc3545 !important;
+            border-radius: 25px !important;
+            padding: 8px 16px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        #comedianTableBody .btn-danger:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.6) !important;
+            background: linear-gradient(45deg, #c82333, #dc3545) !important;
+        }
+
+        #comedianTableBody tr {
+            background: linear-gradient(135deg, #2d2d2d 0%, #404040 100%) !important;
+            border-bottom: 2px solid #ff6600 !important;
+            transition: all 0.3s ease !important;
+        }
+
+        #comedianTableBody tr:hover {
+            background: linear-gradient(135deg, rgba(255, 102, 0, 0.2) 0%, rgba(255, 133, 51, 0.2) 100%) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 5px 15px rgba(255, 102, 0, 0.3) !important;
+        }
+
+        #comedianTableBody td {
+            border: none !important;
+            color: #ffffff !important;
+            padding: 15px 10px !important;
+            vertical-align: middle !important;
+            font-weight: 500 !important;
+        }
+
+        /* Table container styling */
+        .table-responsive {
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+        }
+
+        .table {
+            margin-bottom: 0 !important;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+        }
+
+        /* Comedian Modal Complete Dark Override */
+        #comedianModal .modal-content {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+        }
+
+        #comedianModal .modal-body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+            color: white !important;
+        }
+
+        #comedianModal .table-responsive {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+        }
+
+        #comedianModal .table {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+        }
+
+        #comedianModal .table thead th {
+            background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%) !important;
+        }
+
+        #comedianModal .table tbody {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+        }
+
+        /* Fix Bootstrap table cell defaults */
+        #comedianModal .table td {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        #comedianModal .table tr {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        #comedianModal .table tbody tr {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        /* Override Bootstrap's striped table styling */
+        #comedianModal .table-striped tbody tr:nth-of-type(odd) td {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        #comedianModal .table-striped tbody tr:nth-of-type(even) td {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
     </style>
 </head>
 
@@ -462,23 +595,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="card comedian-cost-card compact-card" style="cursor: pointer;"
-                        onclick="showComedianManager()">
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="card comedian-cost-card compact-card" style="cursor: pointer;" onclick="showComedianManager()">
                         <div class="text-center">
-                            <i class="fas fa-microphone mb-2"></i>
+                            <i class="fas fa-microphone mb-1"></i>
                             <div class="stat-number" id="comedian-cost">$0</div>
                             <div class="stat-label">Comedian Costs <small>(click to manage)</small></div>
-
-                            <!-- Comedian Preview Section -->
-                            <div id="comedian-preview"
-                                style="margin-top: 10px; max-height: 160px; overflow-y: auto; text-align: left; font-size: 0.8em;">
-                                <div id="comedian-preview-content" style="color: #ecf0f1;">
-                                    <div style="color: #888; text-align: center; font-style: italic; padding: 10px;">
-                                        No comedians added yet
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -571,70 +693,85 @@
         </div>
     </div>
 
-    <!-- Comedian Management Modal -->
+    <!-- Simple Comedian Modal -->
     <div class="modal fade" id="comedianModal" tabindex="-1" aria-labelledby="comedianModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="comedianModalLabel">
-                        <i class="fas fa-microphone me-2"></i>
-                        Manage Comedians & Payments
-                        <span id="save-status" class="ms-3" style="font-size: 0.8em; display: none;">
-                            <i class="fas fa-spinner fa-spin"></i> Saving...
-                        </span>
+            <div class="modal-content" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border: none; border-radius: 15px; box-shadow: 0 20px 60px rgba(255, 107, 53, 0.3);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%); color: white; border-bottom: none; border-radius: 15px 15px 0 0; padding: 1.5rem;">
+                    <h5 class="modal-title" id="comedianModalTitle" style="color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); font-weight: 600;">
+                        <i class="fas fa-microphone me-2" style="color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.8);"></i>
+                        Manage Comedians
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: brightness(0) invert(1);"></button>
                 </div>
-                <div class="modal-body">
-                    <!-- MongoDB-only Comedian Management -->
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <small class="text-muted">
-                                <i class="fas fa-database me-1"></i>
-                                All comedian data is managed directly in MongoDB
-                            </small>
-                        </div>
-                    </div>
-                    <hr class="mb-3">
-
+                <div class="modal-body" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important; border: none !important; color: white !important;">
                     <div class="mb-3">
-                        <button type="button" class="btn"
-                            style="background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%); border: none; color: white;"
-                            onclick="addComedianRow()">
+                        <button type="button" class="btn" onclick="window.comedianManager.addComedianRow()"
+                                style="background: linear-gradient(45deg, #ff6600, #ff8533); 
+                                       border: 2px solid #ff6600; 
+                                       color: white; 
+                                       border-radius: 25px; 
+                                       padding: 8px 16px;
+                                       box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
+                                       transition: all 0.3s ease;">
                             <i class="fas fa-plus me-1"></i>
                             Add Comedian
                         </button>
-                        <small class="text-muted ms-3">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Changes save automatically
-                        </small>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-dark table-striped">
+                    <div class="table-responsive" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important; border-radius: 12px; overflow: hidden;">
+                        <table class="table" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important; border: none !important; margin: 0 !important;">
                             <thead>
-                                <tr>
-                                    <th>Comedian Name</th>
-                                    <th>Amount ($)</th>
-                                    <th>Venmo Handle</th>
-                                    <th>Paid</th>
-                                    <th>Actions</th>
+                                <tr style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%) !important; 
+                                           border: 3px solid #ff6600 !important;
+                                           box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4) !important;">
+                                    <th style="color: #ff6600 !important; font-weight: 800 !important; border: none !important; padding: 18px 12px !important; 
+                                              font-size: 16px !important; letter-spacing: 0.5px !important; text-transform: uppercase !important;
+                                              text-shadow: 0 0 10px rgba(255, 102, 0, 0.8) !important; background: transparent !important;">Name</th>
+                                    <th style="color: #ff6600 !important; font-weight: 800 !important; border: none !important; padding: 18px 12px !important; 
+                                              font-size: 16px !important; letter-spacing: 0.5px !important; text-transform: uppercase !important;
+                                              text-shadow: 0 0 10px rgba(255, 102, 0, 0.8) !important; background: transparent !important;">Payment ($)</th>
+                                    <th style="color: #ff6600 !important; font-weight: 800 !important; border: none !important; padding: 18px 12px !important; 
+                                              font-size: 16px !important; letter-spacing: 0.5px !important; text-transform: uppercase !important;
+                                              text-shadow: 0 0 10px rgba(255, 102, 0, 0.8) !important; background: transparent !important;">Handle</th>
+                                    <th style="color: #ff6600 !important; font-weight: 800 !important; border: none !important; padding: 18px 12px !important; 
+                                              font-size: 16px !important; letter-spacing: 0.5px !important; text-transform: uppercase !important;
+                                              text-shadow: 0 0 10px rgba(255, 102, 0, 0.8) !important; background: transparent !important;">Paid</th>
+                                    <th style="color: #ff6600 !important; font-weight: 800 !important; border: none !important; padding: 18px 12px !important; 
+                                              font-size: 16px !important; letter-spacing: 0.5px !important; text-transform: uppercase !important;
+                                              text-shadow: 0 0 10px rgba(255, 102, 0, 0.8) !important; background: transparent !important;">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="comedian-table-body">
-                                <!-- Comedian rows will be populated here -->
+                            <tbody id="comedianTableBody" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;">
+                                <!-- Comedian rows will be added here -->
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-3">
-                        <strong>Total Comedian Costs: $<span id="total-comedian-cost">0</span></strong>
+                    <div class="mt-3" style="background: linear-gradient(45deg, #333333, #444444); 
+                                           padding: 12px; 
+                                           border-radius: 10px; 
+                                           border: 2px solid #ff6600;">
+                        <strong style="color: #ff6600; font-size: 1.1em;">Total: $<span id="totalComedianCost">0</span></strong>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="modal-footer" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); 
+                                                border-top: 2px solid #ff6600;">
+                    <button type="button" class="btn" onclick="window.comedianManager.saveAndClose()"
+                            style="background: linear-gradient(45deg, #28a745, #34ce57); 
+                                   border: 2px solid #28a745; 
+                                   color: white; 
+                                   border-radius: 25px; 
+                                   padding: 10px 20px;
+                                   box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+                                   transition: all 0.3s ease;">
+                        <i class="fas fa-save me-1"></i>
+                        Save and Close
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+
 
     <!-- Revenue & Fee Analysis Modal -->
     <div class="modal fade" id="revenueBreakdownModal" tabindex="-1" aria-labelledby="revenueBreakdownModalLabel" aria-hidden="true">

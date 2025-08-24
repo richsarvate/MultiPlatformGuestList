@@ -90,6 +90,10 @@ class Dashboard {
             this.uiManager.hideError();
 
             const data = await this.dataManager.loadShowBreakdown(venue, showDate);
+            
+            // Store the original ISO format showDate for comedian API calls
+            data.original_show_date = showDate;
+            
             this.uiManager.displayResults(data);
             this.uiManager.hideLoading();
 
@@ -138,43 +142,7 @@ function showGuestDetails() {
     loadGuestDetails(venue, showDate);
 }
 
-function showComedianManager() {
-    const venue = document.getElementById('venue')?.value;
-    const showDate = document.getElementById('show-date')?.value;
 
-    if (!venue || !showDate) {
-        alert('Please select a venue and show date first');
-        return;
-    }
-
-    const modalTitle = document.getElementById('comedianModalLabel');
-    if (modalTitle) {
-        // Get the text content of the selected option for better display
-        const venueSelect = document.getElementById('venue');
-        const showDateSelect = document.getElementById('show-date');
-        const venueName = venueSelect?.selectedOptions[0]?.textContent || venue;
-        const showDateName = showDateSelect?.selectedOptions[0]?.textContent || showDate;
-        modalTitle.innerHTML = `<i class="fas fa-microphone me-2"></i>
-                        Manage Comedians & Payments - ${venueName} - ${showDateName}
-                        <span id="save-status" class="ms-3" style="font-size: 0.8em; display: none;">
-                            <i class="fas fa-spinner fa-spin"></i> Saving...
-                        </span>`;
-    }
-
-    const modal = new bootstrap.Modal(document.getElementById('comedianModal'));
-    modal.show();
-
-    // Load comedian data for the selected show
-    if (window.comedianManager) {
-        window.comedianManager.loadComedianData(venue, showDate);
-    }
-}
-
-function addComedianRow() {
-    if (window.comedianManager) {
-        window.comedianManager.addComedianRow();
-    }
-}
 
 // Helper function to get consistent source colors
 function getSourceColor(source) {

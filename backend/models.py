@@ -11,7 +11,7 @@ from enum import Enum
 
 
 class SyncMode(Enum):
-    """Synchronization modes for comedian data"""
+    """Synchronization modes for data"""
     AUTO = "auto"
     MANUAL = "manual"
 
@@ -69,42 +69,6 @@ class Contact:
                 result[key] = value
         return result
 
-
-@dataclass
-class Comedian:
-    """Comedian data model for payment and booking information"""
-    name: str
-    venue: str
-    show_date: str
-    
-    # Payment information
-    venmo_handle: Optional[str] = None
-    payment_rate: Optional[float] = None
-    payment_notes: Optional[str] = None
-    
-    # Contact information
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    
-    # Show information
-    show_time: Optional[str] = None
-    set_length: Optional[int] = None  # minutes
-    is_headliner: bool = False
-    is_host: bool = False
-    
-    # System fields
-    sync_mode: str = SyncMode.AUTO.value
-    last_synced: Optional[datetime] = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for MongoDB storage"""
-        result = {}
-        for key, value in self.__dict__.items():
-            if value is not None:
-                result[key] = value
-        return result
 
 
 @dataclass
@@ -188,19 +152,3 @@ def validate_contact(contact_data: Dict[str, Any]) -> Contact:
         raise ValidationError(f"Invalid ticket count: {tickets}")
     
     return Contact(**{k: v for k, v in contact_data.items() if v is not None})
-
-
-def validate_comedian(comedian_data: Dict[str, Any]) -> Comedian:
-    """Validate and create Comedian instance from dictionary"""
-    required_fields = ['name', 'venue', 'show_date']
-    
-    for field in required_fields:
-        if not comedian_data.get(field):
-            raise ValidationError(f"Required field '{field}' is missing or empty")
-    
-    # Validate sync mode
-    sync_mode = comedian_data.get('sync_mode', SyncMode.AUTO.value)
-    if sync_mode not in [mode.value for mode in SyncMode]:
-        raise ValidationError(f"Invalid sync mode: {sync_mode}")
-    
-    return Comedian(**{k: v for k, v in comedian_data.items() if v is not None})

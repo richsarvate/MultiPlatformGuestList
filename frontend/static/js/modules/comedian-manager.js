@@ -1,374 +1,288 @@
 /**
- * Comedian Manager - Handle all comedian-related UI operations
- * No Google Sheets integration - MongoDB only
+ * Simple Comedian Manager - Basic comedian modal functionality
  */
 
 class ComedianManager {
     constructor() {
-        this.currentComedianData = [];
-        this.autoSaveTimeout = null;
-        this.isSaving = false;
+        this.comedians = [];
+        this.modal = null;
+        this.currentVenue = null;
+        this.currentShowDate = null;
+        console.log('🎭 ComedianManager created');
     }
 
-    async loadComedianData(venue, showDate) {
-        try {
-            const data = await window.apiClient.getComedians(venue, showDate);
-            
-            if (data.error) {
-                throw new Error(data.error);
-            }
-            
-            // Store current data - always from MongoDB now
-            this.currentComedianData = data.comedians || [];
-            
-            // Populate table
-            this.populateComedianTable(this.currentComedianData);
-            this.updateComedianTotal();
-            
-            console.log(`Loaded ${this.currentComedianData.length} comedians from MongoDB`);
-            
-        } catch (error) {
-            console.error('Error loading comedian data:', error);
-            throw error;
+    /**
+     * Initialize the comedian manager
+     */
+    init() {
+        console.log('🎭 Initializing Simple Comedian Manager');
+        this.modal = document.getElementById('comedianModal');
+        this.setupEventListeners();
+    }
+
+    /**
+     * Setup event listeners
+     */
+    setupEventListeners() {
+        // Save and close button
+        const saveButton = document.getElementById('saveComedians');
+        if (saveButton) {
+            saveButton.addEventListener('click', () => this.saveAndClose());
+        }
+
+        // Add comedian button
+        const addButton = document.getElementById('addComedian');
+        if (addButton) {
+            addButton.addEventListener('click', () => this.addComedianRow());
         }
     }
 
-    populateComedianTable(comedians) {
-        const tableBody = document.getElementById('comedian-table-body');
-        if (!tableBody) return;
-        
-        tableBody.innerHTML = '';
-        
-        comedians.forEach((comedian, index) => {
-            this.addComedianRowToTable(comedian, index);
+    /**
+     * Open the comedian modal for a specific show
+     */
+    async openModal(venue, showDate) {
+        this.currentVenue = venue;
+        this.currentShowDate = showDate;
+
+        console.log(`Opening comedian modal for ${venue} - ${showDate}`);
+
+        // Update modal title
+        const modalTitle = document.getElementById('comedianModalTitle');
+        if (modalTitle) {
+            modalTitle.textContent = `Manage Comedians - ${venue} - ${showDate}`;
+        }
+
+        // Load existing comedians
+        await this.loadComedians();
+
+        // Show the modal
+        if (this.modal) {
+            const bsModal = new bootstrap.Modal(this.modal);
+            bsModal.show();
+        }
+    }
+
+    /**
+     * Load comedians from the server
+     */
+    async loadComedians() {
+        try {
+            const response = await fetch(`/api/comedians/?venue=${encodeURIComponent(this.currentVenue)}&show_date=${encodeURIComponent(this.currentShowDate)}`);
+            const data = await response.json();
+            
+            this.comedians = data.comedians || [];
+            this.renderComedians();
+            this.updateTotal();
+            
+            // Also update the main dashboard display immediately
+            this.updateCostDisplay(this.comedians);
+            
+            console.log(`Loaded ${this.comedians.length} comedians`);
+        } catch (error) {
+            console.error('Error loading comedians:', error);
+            this.comedians = [];
+            this.renderComedians();
+            this.updateTotal();
+            
+            // Also update the main dashboard display with empty list
+            this.updateCostDisplay(this.comedians);
+        }
+    }
+
+    /**
+     * Render the comedians table
+     */
+    renderComedians() {
+        const tbody = document.getElementById('comedianTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        // Render existing comedians only
+        this.comedians.forEach((comedian, index) => {
+            const row = this.createComedianRow(comedian, index);
+            tbody.appendChild(row);
         });
     }
 
-    addComedianRowToTable(comedian, index) {
-        const tableBody = document.getElementById('comedian-table-body');
-        if (!tableBody) return;
-        
+    /**
+     * Create a single comedian row
+     */
+    createComedianRow(comedian, index, isNew = false) {
         const row = document.createElement('tr');
-        row.setAttribute('data-index', index);
-        
         row.innerHTML = `
             <td>
                 <input type="text" class="form-control" value="${comedian.name || ''}" 
-                       oninput="window.comedianManager.updateComedianNameField(${index}, this.value)"
-                       style="background: #1a1a1a; border: 1px solid #404040; color: #ecf0f1;">
+                       onchange="window.comedianManager.updateComedian(${index}, 'name', this.value)">
             </td>
             <td>
-                <input type="number" class="form-control" value="${comedian.amount || 0}" step="0.01" min="0"
-                       oninput="window.comedianManager.updateComedianField(${index}, 'amount', parseFloat(this.value) || 0)"
-                       style="background: #1a1a1a; border: 1px solid #404040; color: #ecf0f1;">
+                <input type="number" class="form-control" value="${comedian.payment || ''}" 
+                       oninput="window.comedianManager.updateComedian(${index}, 'payment', this.value)"
+                       onchange="window.comedianManager.updateComedian(${index}, 'payment', this.value)">
             </td>
             <td>
-                <div class="input-group" style="position: relative;">
-                    <input type="text" class="form-control" value="${comedian.venmo_handle || ''}" 
-                           id="venmo-handle-${index}"
-                           placeholder="@username"
-                           oninput="window.comedianManager.updateVenmoHandle(${index}, this.value)"
-                           style="background: #1a1a1a; border: 1px solid #404040; color: #ecf0f1; font-size: 0.9em;">
-                    ${comedian.venmo_handle ? `
-                        <button type="button" class="btn btn-sm venmo-pay-btn" 
-                                onclick="window.venmoManager.openVenmoPayment('${comedian.venmo_handle}', ${comedian.amount || 0})"
-                                style="background: #3d95ce; border: none; color: white; font-size: 0.8em; padding: 4px 8px; margin-left: 4px;"
-                                title="Pay with Venmo">
-                            💳 Pay
-                        </button>
-                    ` : ''}
-                </div>
+                <input type="text" class="form-control" value="${comedian.handle || ''}" 
+                       onchange="window.comedianManager.updateComedian(${index}, 'handle', this.value)">
             </td>
             <td>
-                <div class="form-check">
-                    <input type="checkbox" class="form-check-input" ${comedian.paid ? 'checked' : ''}
-                           onchange="window.comedianManager.updateComedianField(${index}, 'paid', this.checked)"
-                           style="transform: scale(1.4); cursor: pointer; margin-right: 8px;">
-                    <label class="form-check-label" style="color: #ecf0f1; margin-left: 12px; font-size: 1em; font-weight: 500; cursor: pointer; padding: 6px 10px; border-radius: 4px; background: rgba(255,255,255,0.08);">
-                        ${comedian.paid ? 'Paid' : 'Unpaid'}
-                    </label>
-                </div>
+                <input type="checkbox" class="form-check-input" ${comedian.paid ? 'checked' : ''}
+                       onchange="window.comedianManager.updateComedian(${index}, 'paid', this.checked)">
             </td>
             <td>
-                <button type="button" class="btn btn-sm" 
-                        style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border: none; color: white;"
-                        onclick="window.comedianManager.removeComedian(${index})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                ${!isNew ? 
+                    `<button type="button" class="btn btn-sm btn-danger" onclick="window.comedianManager.removeComedian(${index})">Remove</button>` : 
+                    ``
+                }
             </td>
         `;
-        
-        tableBody.appendChild(row);
+        return row;
     }
 
-    addComedianRow() {
-        const newComedian = {
-            id: '',
-            name: '',
-            amount: 50,
-            venmo_handle: '',
-            paid: false,
-            payment_date: null,
-            notes: ''
-        };
-        
-        this.currentComedianData = this.currentComedianData || [];
-        this.currentComedianData.push(newComedian);
-        
-        const index = this.currentComedianData.length - 1;
-        this.addComedianRowToTable(newComedian, index);
-        this.updateComedianTotal();
-        
-        // Trigger auto-save when adding new comedian
-        this.triggerAutoSave(true);
-    }
-
-    updateComedianField(index, field, value) {
-        if (this.currentComedianData && this.currentComedianData[index]) {
-            this.currentComedianData[index][field] = value;
-            
-            // Update the paid label and checkbox if it's the paid field
-            if (field === 'paid') {
-                const row = document.querySelector(`tr[data-index="${index}"]`);
-                if (row) {
-                    const label = row.querySelector('.form-check-label');
-                    const checkbox = row.querySelector('.form-check-input');
-                    if (label) {
-                        label.textContent = value ? 'Paid' : 'Unpaid';
-                    }
-                    if (checkbox) {
-                        checkbox.checked = value;
-                    }
-                }
-                // Immediate save for payment status changes
-                this.triggerAutoSave(true);
-            } else {
-                // Debounced save for text/number fields
-                this.triggerAutoSave(false);
-            }
-            
-            this.updateComedianTotal();
-        }
-    }
-
-    async updateComedianNameField(index, value) {
-        // Simply update the name field
-        this.updateComedianField(index, 'name', value);
-    }
-
-    removeComedian(index) {
-        if (this.currentComedianData && index >= 0 && index < this.currentComedianData.length) {
-            // Remove the comedian from the data
-            this.currentComedianData.splice(index, 1);
-            
-            // Rebuild the table to ensure proper indexing
-            this.populateComedianTable(this.currentComedianData);
-            this.updateComedianTotal();
-            
-            // Immediate save when removing comedians
-            this.triggerAutoSave(true);
-        }
-    }
-
-    async updateVenmoHandle(index, value) {
-        // Clean the handle (remove @ if present, trim whitespace)
-        const cleanHandle = value.replace('@', '').trim();
-        
-        if (this.currentComedianData && this.currentComedianData[index]) {
+    /**
+     * Update a comedian's data
+     */
+    updateComedian(index, field, value) {
+        // Only update existing comedians, don't auto-add new ones
+        if (index < this.comedians.length) {
             // Update the field
-            this.updateComedianField(index, 'venmo_handle', cleanHandle);
-            
-            // Update pay button based on whether we have a handle
-            this.updatePayButtonInRow(index, cleanHandle);
-            
-            console.log(`Updated Venmo handle for ${this.currentComedianData[index].name}: ${cleanHandle ? '@' + cleanHandle : '(cleared)'}`);
-        }
-    }
-
-    updatePayButtonInRow(index, venmoHandle) {
-        const row = document.querySelector(`tr[data-index="${index}"]`);
-        if (!row) return;
-        
-        const venmoCell = row.children[2]; // Venmo handle column
-        const inputGroup = venmoCell.querySelector('.input-group');
-        
-        if (venmoHandle && venmoHandle.trim()) {
-            // Check if pay button already exists
-            let payButton = inputGroup.querySelector('.venmo-pay-btn');
-            
-            if (!payButton) {
-                // Create and add pay button
-                payButton = document.createElement('button');
-                payButton.type = 'button';
-                payButton.className = 'btn btn-sm venmo-pay-btn';
-                payButton.style.cssText = 'background: #3d95ce; border: none; color: white; font-size: 0.8em; padding: 4px 8px; margin-left: 4px;';
-                payButton.title = 'Pay with Venmo';
-                payButton.innerHTML = '💳 Pay';
-                
-                const comedian = this.currentComedianData[index];
-                payButton.onclick = () => window.venmoManager.openVenmoPayment(venmoHandle, comedian.amount || 0);
-                
-                inputGroup.appendChild(payButton);
+            if (field === 'payment') {
+                this.comedians[index][field] = parseFloat(value) || 0;
+            } else if (field === 'paid') {
+                this.comedians[index][field] = value;
             } else {
-                // Update existing button
-                const comedian = this.currentComedianData[index];
-                payButton.onclick = () => window.venmoManager.openVenmoPayment(venmoHandle, comedian.amount || 0);
+                this.comedians[index][field] = value;
             }
-        } else {
-            // Remove pay button if handle is empty
-            const payButton = inputGroup.querySelector('.venmo-pay-btn');
-            if (payButton) {
-                payButton.remove();
+            // Update the total whenever payment changes
+            if (field === 'payment') {
+                this.updateTotal();
             }
         }
     }
 
-    updateComedianTotal() {
-        if (!this.currentComedianData) return;
-        
-        const total = this.currentComedianData.reduce((sum, comedian) => {
-            return sum + (parseFloat(comedian.amount) || 0);
+    /**
+     * Calculate and update the total cost display
+     */
+    updateTotal() {
+        const total = this.comedians.reduce((sum, comedian) => {
+            return sum + (parseFloat(comedian.payment) || 0);
         }, 0);
         
-        const totalElement = document.getElementById('total-comedian-cost');
+        const totalElement = document.getElementById('totalComedianCost');
         if (totalElement) {
-            totalElement.textContent = total.toLocaleString();
+            totalElement.textContent = total.toFixed(0);
         }
         
-        this.updateComedianPreview();
+        // Also update the main dashboard comedian cost display
+        this.updateCostDisplay(this.comedians);
     }
 
-    updateComedianPreview() {
-        const previewContainer = document.getElementById('comedian-preview-content');
-        if (!previewContainer) return;
-        
-        if (!this.currentComedianData || this.currentComedianData.length === 0) {
-            previewContainer.innerHTML = `
-                <div style="color: #888; text-align: center; font-style: italic; padding: 10px;">
-                    No comedians added yet
-                </div>
-            `;
-            return;
-        }
-        
-        // Sort comedians by amount (highest first) and take top 5 for preview
-        const sortedComedians = [...this.currentComedianData]
-            .filter(c => c.name && c.name.trim())
-            .sort((a, b) => (parseFloat(b.amount) || 0) - (parseFloat(a.amount) || 0))
-            .slice(0, 5);
-        
-        let previewHtml = '';
-        let totalAmount = 0;
-        
-        sortedComedians.forEach(comedian => {
-            const amount = parseFloat(comedian.amount) || 0;
-            totalAmount += amount;
-            const paidStatus = comedian.paid ? '✅' : '';
-            
-            previewHtml += `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 3px 6px; border-bottom: 1px solid rgba(255,255,255,0.1); min-height: 24px;">
-                    <div style="flex: 1; overflow: hidden; margin-right: 8px;">
-                        <span style="font-weight: 500; word-wrap: break-word; line-height: 1.2;">${comedian.name}</span>
-                        ${paidStatus ? `<span style="margin-left: 6px; font-size: 0.9em;">${paidStatus}</span>` : ''}
-                    </div>
-                    <div style="color: #2ecc71; font-weight: 600; white-space: nowrap;">$${amount.toLocaleString()}</div>
-                </div>
-            `;
+    /**
+     * Add a new comedian row
+     */
+    addComedianRow() {
+        this.comedians.push({
+            name: '',
+            payment: '',
+            handle: '',
+            paid: false
         });
-        
-        // Add summary if there are more comedians
-        const remainingCount = this.currentComedianData.filter(c => c.name && c.name.trim()).length - sortedComedians.length;
-        if (remainingCount > 0) {
-            const remainingTotal = this.currentComedianData
-                .filter(c => c.name && c.name.trim())
-                .slice(5)
-                .reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
-            
-            previewHtml += `
-                <div style="padding: 6px; text-align: center; color: #888; font-style: italic; border-top: 1px solid rgba(255,255,255,0.2);">
-                    +${remainingCount} more ($${remainingTotal.toLocaleString()})
-                </div>
-            `;
-        }
-        
-        previewContainer.innerHTML = previewHtml;
+        this.renderComedians();
+        this.updateTotal();
     }
 
-    triggerAutoSave(immediate = false) {
-        if (this.isSaving) return;
-        
-        clearTimeout(this.autoSaveTimeout);
-        
-        if (immediate) {
-            this.autoSaveComedians();
-        } else {
-            // Debounced save - wait 1.5 seconds after last change
-            this.autoSaveTimeout = setTimeout(() => this.autoSaveComedians(), 1500);
-        }
+    /**
+     * Remove a comedian
+     */
+    removeComedian(index) {
+        this.comedians.splice(index, 1);
+        this.renderComedians();
+        this.updateTotal();
     }
 
-    async autoSaveComedians() {
-        const venue = document.getElementById('venue')?.value;
-        const showDate = document.getElementById('show-date')?.value;
-        
-        if (!venue || !showDate || !this.currentComedianData) {
-            return;
-        }
-
-        if (this.isSaving) return;
-        this.isSaving = true;
-        
+    /**
+     * Save comedians and close modal
+     */
+    async saveAndClose() {
         try {
-            this.showSaveStatus('saving');
-            
-            const data = await window.apiClient.saveComedians(venue, showDate, this.currentComedianData);
-            
-            if (data.error) {
-                throw new Error(data.error);
+            // Filter out empty comedians
+            const validComedians = this.comedians.filter(c => c.name && c.name.trim() !== '');
+
+            console.log('Saving comedians:', validComedians);
+
+            const response = await fetch('/api/comedians/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    venue: this.currentVenue,
+                    show_date: this.currentShowDate,
+                    comedians: validComedians
+                })
+            });
+
+            if (response.ok) {
+                console.log('Comedians saved successfully');
+                
+                // Update the comedian cost display
+                this.updateCostDisplay(validComedians);
+                
+                // Close the modal
+                const bsModal = bootstrap.Modal.getInstance(this.modal);
+                if (bsModal) {
+                    bsModal.hide();
+                }
+            } else {
+                console.error('Error saving comedians');
+                alert('Error saving comedians. Please try again.');
             }
-            
-            // Update the stored data with any server-generated IDs
-            this.currentComedianData = data.comedians;
-            
-            this.showSaveStatus('saved');
-            console.log(`Auto-saved ${this.currentComedianData.length} comedians to MongoDB`);
-            
         } catch (error) {
-            console.error('Error auto-saving comedian data:', error);
-            this.showSaveStatus('error');
-        } finally {
-            this.isSaving = false;
+            console.error('Error saving comedians:', error);
+            alert('Error saving comedians. Please try again.');
         }
     }
 
-    showSaveStatus(status) {
-        const saveStatus = document.getElementById('save-status');
-        if (!saveStatus) return;
+    /**
+     * Update the cost display on the main dashboard
+     */
+    updateCostDisplay(comedians) {
+        const totalCost = comedians.reduce((sum, c) => sum + (parseFloat(c.payment) || 0), 0);
+        const costElement = document.getElementById('comedian-cost');
+        if (costElement) {
+            costElement.textContent = `$${totalCost}`;
+        }
         
-        if (status === 'saving') {
-            saveStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            saveStatus.style.color = '#ff6b35';
-            saveStatus.style.display = 'inline';
-        } else if (status === 'saved') {
-            saveStatus.innerHTML = '<i class="fas fa-check"></i> Saved';
-            saveStatus.style.color = '#27ae60';
-            saveStatus.style.display = 'inline';
-            // Hide after 2 seconds
-            setTimeout(() => {
-                saveStatus.style.display = 'none';
-            }, 2000);
-        } else if (status === 'error') {
-            saveStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error saving';
-            saveStatus.style.color = '#e74c3c';
-            saveStatus.style.display = 'inline';
-            setTimeout(() => {
-                saveStatus.style.display = 'none';
-            }, 3000);
-        } else {
-            saveStatus.style.display = 'none';
+        // Trigger update of total profit calculation
+        if (window.dashboard && window.dashboard.uiManager && window.dashboard.uiManager.currentFullData) {
+            window.dashboard.uiManager.updateSummaryCards(window.dashboard.uiManager.currentFullData);
         }
     }
 }
 
-// Create global comedian manager instance
-window.comedianManager = new ComedianManager();
+// Global function to open the comedian modal
+function showComedianManager() {
+    console.log('showComedianManager called');
+    const venue = document.getElementById('venue')?.value;
+    const showDate = document.getElementById('show-date')?.value;
+
+    if (!venue || !showDate) {
+        alert('Please select a venue and show date first');
+        return;
+    }
+
+    if (window.comedianManager) {
+        window.comedianManager.openModal(venue, showDate);
+    } else {
+        console.error('comedianManager not initialized');
+    }
+}
+
+// Initialize comedian manager when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing comedian manager');
+    window.comedianManager = new ComedianManager();
+    window.comedianManager.init();
+    
+    // Also expose the global function
+    window.showComedianManager = showComedianManager;
+});

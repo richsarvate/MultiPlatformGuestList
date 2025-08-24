@@ -73,24 +73,6 @@ class ApiClient {
         return await this.get(`/api/shows/guests?venue=${encodeURIComponent(venue)}&show_date=${encodeURIComponent(showDate)}`);
     }
 
-    // Comedian operations - MongoDB only, no Google Sheets
-    async getComedians(venue, showDate) {
-        return await this.get(`/api/comedians//?venue=${encodeURIComponent(venue)}&show_date=${encodeURIComponent(showDate)}`);
-    }
-
-    async saveComedians(venue, showDate, comedians) {
-        return await this.post('/api/comedians//', {
-            venue: venue,
-            show_date: showDate,
-            comedians: comedians
-        });
-    }
-
-    async updateComedianPayment(comedianId, paymentData) {
-        return await this.put(`/api/comedians//${comedianId}/payment`, {
-            payment_data: paymentData
-        });
-    }
 }
 
 // Create global API client instance

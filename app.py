@@ -39,7 +39,7 @@ def create_app():
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(venue_bp, url_prefix='/api/venues')
     app.register_blueprint(show_bp, url_prefix='/api/shows')
-    app.register_blueprint(comedian_bp, url_prefix='/api/comedians')
+    app.register_blueprint(comedian_bp)  # Already has /api/comedians prefix
     
     @app.route('/')
     def dashboard():
