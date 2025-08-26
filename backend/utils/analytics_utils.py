@@ -128,7 +128,8 @@ def calculate_venue_cost(venue_name, total_revenue):
     venue_costs = {
         'Palace': {'type': 'percentage', 'rate': 0.30},  # 30% door split
         'Church': {'type': 'flat', 'rate': 700.00},      # $700 rental
-        'Citizen': {'type': 'flat', 'rate': 0.00}        # No cost
+        'Citizen': {'type': 'flat', 'rate': 0.00},       # No cost
+        'Townhouse': {'type': 'percentage', 'rate': 0.25}  # 25% door split
     }
     
     for venue_key in venue_costs:

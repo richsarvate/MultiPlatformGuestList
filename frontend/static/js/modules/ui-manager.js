@@ -98,7 +98,7 @@ class UIManager {
         const totalTicketsEl = document.getElementById('total-tickets');
         const netRevenueEl = document.getElementById('net-revenue');
 
-        if (totalRevenueEl) totalRevenueEl.textContent = `$${data.total_revenue.toLocaleString()}`;
+        if (totalRevenueEl) totalRevenueEl.textContent = `$${data.gross_revenue.toLocaleString()}`;
         if (totalTicketsEl) totalTicketsEl.textContent = data.total_tickets.toLocaleString();
         
         // Calculate net revenue minus comedian costs

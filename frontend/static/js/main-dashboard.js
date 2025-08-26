@@ -245,6 +245,13 @@ function showRevenueBreakdown() {
         return;
     }
 
+    // Debug: Check if modal exists
+    const revenueModal = document.getElementById('revenueBreakdownModal');
+    if (!revenueModal) {
+        console.error('Revenue breakdown modal not found in DOM');
+        return;
+    }
+
     const breakdown = window.dashboard.uiManager.currentRevenueBreakdown;
     const processingFees = window.dashboard.uiManager.currentProcessingFees || {};
 
@@ -307,21 +314,31 @@ function showRevenueBreakdown() {
         `;
     });
 
-    // Calculate venue share and final net
-    const venueShareRate = breakdown.venue_cost?.rate || 30;
-    const venueShare = (totalNetRevenue * venueShareRate) / 100;
-    const finalNetRevenue = totalNetRevenue - venueShare;
+    // Get venue cost from backend data instead of calculating
+    const venueCost = breakdown.venue_cost?.amount || 0;
+    const venueCostDescription = breakdown.venue_cost?.description || 'Venue cost not configured';
+    const finalNetRevenue = totalNetRevenue - venueCost;
 
-    // Populate modal elements
-    document.getElementById('total-gross-revenue').textContent = `$${totalGrossRevenue.toFixed(2)}`;
-    document.getElementById('source-breakdown-details').innerHTML = sourceBreakdownHtml;
+    // Populate modal elements with defensive checks
+    const totalGrossRevenueEl = document.getElementById('total-gross-revenue');
+    const sourceBreakdownDetailsEl = document.getElementById('source-breakdown-details');
+    const summaryGrossRevenueEl = document.getElementById('summary-gross-revenue');
+    const summaryProcessingFeesEl = document.getElementById('summary-processing-fees');
+    const summaryNetRevenueEl = document.getElementById('summary-net-revenue');
+    const summaryVenueShareEl = document.getElementById('summary-venue-share');
+    const venueShareLabelEl = document.getElementById('venue-share-label');
+    const summaryFinalNetEl = document.getElementById('summary-final-net');
+
+    if (totalGrossRevenueEl) totalGrossRevenueEl.textContent = `$${totalGrossRevenue.toFixed(2)}`;
+    if (sourceBreakdownDetailsEl) sourceBreakdownDetailsEl.innerHTML = sourceBreakdownHtml;
     
     // Summary section
-    document.getElementById('summary-gross-revenue').textContent = `$${totalGrossRevenue.toFixed(2)}`;
-    document.getElementById('summary-processing-fees').textContent = `-$${totalProcessingFees.toFixed(2)}`;
-    document.getElementById('summary-net-revenue').textContent = `$${totalNetRevenue.toFixed(2)}`;
-    document.getElementById('summary-venue-share').textContent = `-$${venueShare.toFixed(2)}`;
-    document.getElementById('summary-final-net').textContent = `$${finalNetRevenue.toFixed(2)}`;
+    if (summaryGrossRevenueEl) summaryGrossRevenueEl.textContent = `$${totalGrossRevenue.toFixed(2)}`;
+    if (summaryProcessingFeesEl) summaryProcessingFeesEl.textContent = `-$${totalProcessingFees.toFixed(2)}`;
+    if (summaryNetRevenueEl) summaryNetRevenueEl.textContent = `$${totalNetRevenue.toFixed(2)}`;
+    if (summaryVenueShareEl) summaryVenueShareEl.textContent = `-$${venueCost.toFixed(2)}`;
+    if (venueShareLabelEl) venueShareLabelEl.textContent = `Venue Share (${venueCostDescription}):`;
+    if (summaryFinalNetEl) summaryFinalNetEl.textContent = `$${finalNetRevenue.toFixed(2)}`;
 
     // Update modal header with show date
     const modalLabel = document.getElementById('revenueBreakdownModalLabel');
@@ -331,7 +348,13 @@ function showRevenueBreakdown() {
     }
 
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('revenueBreakdownModal'));
+    const revenueModalElement = document.getElementById('revenueBreakdownModal');
+    if (!revenueModalElement) {
+        console.error('Revenue breakdown modal not found in DOM');
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(revenueModalElement);
     modal.show();
 }
 
