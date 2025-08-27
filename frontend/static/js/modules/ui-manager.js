@@ -98,7 +98,7 @@ class UIManager {
         const totalTicketsEl = document.getElementById('total-tickets');
         const netRevenueEl = document.getElementById('net-revenue');
 
-        if (totalRevenueEl) totalRevenueEl.textContent = `$${data.gross_revenue.toLocaleString()}`;
+        if (totalRevenueEl) totalRevenueEl.textContent = `$${data.net_revenue.toLocaleString()}`;
         if (totalTicketsEl) totalTicketsEl.textContent = data.total_tickets.toLocaleString();
         
         // Calculate net revenue minus comedian costs
@@ -156,7 +156,8 @@ class UIManager {
             processing_fees: data.revenue_breakdown?.processing_fees || 0,
             net_revenue: data.net_revenue || 0,
             source_breakdown: data.revenue_breakdown?.source_breakdown || {},
-            by_source: data.by_source || {}
+            by_source: data.by_source || {},
+            venue_cost: data.venue_cost || null
         };
         this.currentProcessingFees = data.processing_fees?.fees_by_source || {};
         this.currentShowData = { venue: data.venue, show_date: data.show_date };
