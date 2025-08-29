@@ -1,0 +1,56 @@
+/* Modal Styles - Dark theme modals */
+
+.modal-content {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+    border: 2px solid #404040;
+    color: #ecf0f1;
+}
+
+.modal-header {
+    border-bottom: 2px solid #ff6b35;
+    background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+}
+
+.modal-title {
+    color: #ff6b35;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.btn-close {
+    filter: invert(1);
+}
+
+.modal-body strong {
+    color: #ff6b35;
+}
+
+.modal-body span:not(.badge) {
+    color: #ecf0f1;
+}
+
+.modal-footer {
+    border-top: 2px solid #404040;
+    background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #2d1b1b 0%, #1a1a1a 100%);
+    border-color: #c0392b;
+    color: #e74c3c;
+}
+
+.spinner-border-primary {
+    color: #ff6b35;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #404040 0%, #2d2d2d 100%);
+    border-color: #404040;
+    color: #ecf0f1;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+    border-color: #ff6b35;
+    color: #ffffff;
+}

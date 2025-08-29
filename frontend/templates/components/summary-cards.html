@@ -1,0 +1,64 @@
+<!-- Summary Cards Component -->
+<div class="row">
+    <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="card tickets-card compact-card" style="cursor: pointer;" onclick="showGuestDetails()">
+            <div class="text-center">
+                <i class="fas fa-ticket-alt mb-1"></i>
+                <div class="stat-number" id="total-tickets">0</div>
+                <div class="stat-label">Total Tickets <small>(click for details)</small></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="card stat-card compact-card"
+            style="cursor: pointer; -webkit-tap-highlight-color: rgba(0,0,0,0.1);"
+            onclick="showRevenueBreakdown()" ontouchend="this.click()"
+            title="Net Revenue: Money after payment processor fees">
+            <div class="text-center">
+                <i class="fas fa-dollar-sign mb-1"></i>
+                <div class="stat-number" id="total-revenue">$0</div>
+                <div class="stat-label">Net Revenue</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6" id="venue-cost-container">
+        <div class="card venue-cost-card compact-card">
+            <div class="text-center">
+                <i class="fas fa-building mb-1"></i>
+                <div class="stat-number" id="venue-cost">$0</div>
+                <div class="stat-label" id="venue-cost-label">Venue Cost</div>
+                <div class="mt-2">
+                    <div class="form-check d-inline-flex align-items-center" style="margin-bottom: 12px;">
+                        <input type="checkbox" class="form-check-input me-3" id="venue-paid-checkbox"
+                            onchange="updateVenuePaymentStatus(this.checked)"
+                            style="transform: scale(1.5); cursor: pointer;">
+                        <label class="form-check-label"
+                            style="color: #ecf0f1; font-size: 1.1em; font-weight: 500; cursor: pointer; padding: 8px 12px; border-radius: 6px; background: rgba(255,255,255,0.1);"
+                            id="venue-paid-label" for="venue-paid-checkbox">
+                            Paid
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="card comedian-cost-card compact-card" style="cursor: pointer;" onclick="showComedianManager()">
+            <div class="text-center">
+                <i class="fas fa-microphone mb-1"></i>
+                <div class="stat-number" id="comedian-cost">$0</div>
+                <div class="stat-label">Comedian Costs <small>(click to manage)</small></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="card net-revenue-card compact-card"
+            title="Total Profit: Money after payment fees and all expenses">
+            <div class="text-center">
+                <i class="fas fa-hand-holding-usd mb-1"></i>
+                <div class="stat-number" id="net-revenue">$0</div>
+                <div class="stat-label">Total Profit</div>
+            </div>
+        </div>
+    </div>
+</div>
