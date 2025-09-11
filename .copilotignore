@@ -39,7 +39,3 @@ coverage/
 docs/
 *.md
 LICENSE
-
-# Temporarily allow ingestion files for editing
-!ingestion/**/*.py
-!getBucketlistOrders.py

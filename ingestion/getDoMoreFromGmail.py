@@ -126,17 +126,10 @@ def batch_add_contacts_to_mongodb(batch_data):
     try:
         from addContactsToMongoDB import batch_add_contacts_to_mongodb as mongo_batch_add
         
-        # Convert the batch_data to the format expected by the MongoDB function
-        mongo_batch_data = {}
-        for show_key, guests in batch_data.items():
-            # Extract venue from "venue - date" format
-            venue = show_key.split(" - ")[0]
-            if venue not in mongo_batch_data:
-                mongo_batch_data[venue] = []
-            mongo_batch_data[venue].extend(guests)
+        logger.info(f"Saving {len(batch_data)} show groupings to MongoDB")
         
-        logger.info(f"Converting {len(batch_data)} show groupings to {len(mongo_batch_data)} venue groupings")
-        mongo_batch_add(mongo_batch_data)
+        # Pass through directly - preserve the full "venue - date" keys
+        mongo_batch_add(batch_data)
         
     except ImportError as e:
         logger.error(f"Failed to import addContactsToMongoDB: {e}")

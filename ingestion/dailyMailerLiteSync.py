@@ -13,6 +13,11 @@ Run this script once daily via cron job.
 
 import json
 import logging
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 from datetime import datetime, date
 from pymongo import MongoClient
 import requests
@@ -30,8 +35,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# MailerLite API Configuration (from addEmailToMailerLite.py)
-API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiOWU1ZjkzMDRiN2QxYWY1ZWM2ZDNjNmFlODM0YmYyNjM5YjhjYTU5ZDdhYWUyNmM0ZmQ0YTYxZmEyMmM1YzIxZDYxZjM4Y2FhYmNhZTg0ODciLCJpYXQiOjE3MzY5MTY1MTQuMzI3NTY5LCJuYmYiOjE3MzY5MTY1MTQuMzI3NTcxLCJleHAiOjQ4OTI1OTAxMTQuMzIzOTg1LCJzdWIiOiIxMjkwMjEyIiwic2NvcGVzIjpbXX0.RZpywLR4PD5LvI4ef1XshSbEr4ab7AcnjQC8V6EqrY4kqV-8i0RrGO57nkyhW46VtT0KzbLxnsEMEsszFH0rJH12-fN7afM7-GRPXyZSPvfNpk0Z6yWTJHlMy9oS8keTJvGcuCHRilkR694XfoAofsNbWhfJFtPx6yRKOb8LdJScyC7gwobdhuIcteor7jkFskaRCYRW8wo2MHPE7z3_EdahPyYZc1FXzbaonrjhNoUT0Zx_KeUZwajXht39RcM-V6zwBFFBF6XKXx-67NCOMLTjzCk8N2RgiBV2sTMoIMB0WRmdgnkTsBlq4zacGm-29Q3Mnp_gtu7QEQlRDzEMGjKTTlPqVuTT4vclWySUq1NGQdT6X-XGuIbuA3syLFNd3lDq0DpE1nF2x4NwUbcIuzyFKr-w2bHcg_Pr4XDrlv5llSPKR19Bf66jPDqdPWPLy3u4MSQXZtdW3RKPwSSyVdUFFzICQp1KhtxrYLxms6Mweq3TW9nkfZCM7nogI8l8S7uprTk11XK0q1SSnp65fPGNPRiR4yZ446plS1i1fDskcTJxLfoX6RkybBTofNDWjg33Gio9NkuzzTDCoM1OSTFC-ufw184tzbN8a2i29JUDd2Yqep7riyY6qY3Oc0yvNFDpRzb3zAZcwJSdvdBhkMFhLRyIY32aSAalShiskWo"
+# MailerLite API Configuration (from environment variables)
+API_KEY = os.getenv('MAILERLITE_API_KEY')
 
 # Venue to MailerLite Group Mapping (from addEmailToMailerLite.py)
 GROUPS = {

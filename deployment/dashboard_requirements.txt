@@ -1,9 +1,0 @@
-# Dashboard Requirements
-# Add these to your existing Python environment
-
-flask>=2.3.0
-pymongo>=4.0.0
-
-# Note: Your existing dependencies should already include:
-# - pymongo (from your existing scripts)
-# - All MongoDB connection requirements from config.py

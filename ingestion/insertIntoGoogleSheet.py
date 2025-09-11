@@ -8,11 +8,17 @@ from gspread.exceptions import APIError, SpreadsheetNotFound, WorksheetNotFound
 from datetime import datetime 
 import re  # Add this line
 import logging
+import hashlib
 from addContactsToMongoDB import batch_add_contacts_to_mongodb
 from getVenueAndDate import get_city, append_year_to_show_date
 
 # Setup logging
 logger = logging.getLogger(__name__)
+
+def _generate_row_hash(first_name, last_name, email, source, show_name):
+    """Generate hash from key fields, skipping empty ones"""
+    fields = [f for f in [first_name, last_name, email, source, show_name] if f]
+    return hashlib.md5(''.join(str(f).lower().strip() for f in fields).encode()).hexdigest()[:12]
 
 def _setup_google_sheets_client():
     """Initialize Google Sheets client and service"""
@@ -527,18 +533,39 @@ def _convert_guests_to_rows(guests):
     return rows
 
 def _batch_insert_guest_data(worksheet, guest_rows, headers):
-    """Efficiently insert guest data in batch"""
+    """Efficiently insert guest data in batch with deduplication"""
     if not guest_rows:
         return
     
     # Ensure headers exist
-    if len(worksheet.get_all_values()) == 0:
+    all_values = worksheet.get_all_values()
+    if len(all_values) == 0:
         worksheet.append_row(headers, 1)
-    
-    # Insert all rows - no duplicate prevention since people can buy multiple tickets
-    # with the same email for the same show
-    if guest_rows:
-        worksheet.append_rows(guest_rows)
-        print(f"Inserted {len(guest_rows)} guests")
+        existing_rows = []
     else:
-        print("No guests to insert")
+        existing_rows = all_values[1:]  # Skip header
+    
+    # Create hash set from existing rows
+    existing_hashes = set()
+    for row in existing_rows:
+        if len(row) >= 7:  # Ensure row has enough columns
+            show_name = f"{row[0]} - {row[1]}" if len(row) > 1 else ""
+            row_hash = _generate_row_hash(row[6] if len(row) > 6 else "", row[7] if len(row) > 7 else "", row[2] if len(row) > 2 else "", row[3] if len(row) > 3 else "", show_name)
+            existing_hashes.add(row_hash)
+    
+    # Filter out duplicates
+    unique_rows = []
+    for row in guest_rows:
+        if len(row) >= 7:
+            show_name = f"{row[0]} - {row[1]}" if len(row) > 1 else ""
+            row_hash = _generate_row_hash(row[6] if len(row) > 6 else "", row[7] if len(row) > 7 else "", row[2] if len(row) > 2 else "", row[3] if len(row) > 3 else "", show_name)
+            if row_hash not in existing_hashes:
+                unique_rows.append(row)
+                existing_hashes.add(row_hash)
+    
+    # Insert only unique rows
+    if unique_rows:
+        worksheet.append_rows(unique_rows)
+        print(f"Inserted {len(unique_rows)} unique guests (skipped {len(guest_rows) - len(unique_rows)} duplicates)")
+    else:
+        print("No new guests to insert (all were duplicates)")
