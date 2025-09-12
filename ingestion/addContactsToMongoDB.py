@@ -8,7 +8,9 @@ from shared_config import get_mongo_config
 # Set up logging
 logger = logging.getLogger(__name__)
 
-def parse_show_date_with_year(date_string: str) -> datetime:
+from typing import Optional
+
+def parse_show_date_with_year(date_string: str) -> Optional[datetime]:
     """
     Parse show date string into datetime object.
     If year is present, use it. If not, apply future-show logic.
@@ -28,7 +30,11 @@ def parse_show_date_with_year(date_string: str) -> datetime:
         if re.search(r'\b\d{4}\b', date_string):
             # Year is present, extract year, month, and day
             year_match = re.search(r'\b(\d{4})\b', date_string)
-            year = int(year_match.group(1))
+            if year_match:
+                year = int(year_match.group(1))
+            else:
+                logger.warning(f"Could not extract year from: {date_string}")
+                return None
         else:
             # No year present, assume current year (2025) for all existing data
             # This is simpler and more reliable than trying to guess future vs past
@@ -97,22 +103,18 @@ def batch_add_contacts_to_mongodb(batch_data):
         return
     
     # MongoDB configuration
-    MONGO_DB = "guest_list_contacts" 
-    MONGO_COLLECTION = "contacts"
-    
+    MONGO_DB = "guest_list_contacts"
     try:
         client = MongoClient(MONGO_URI)
         db = client[MONGO_DB]
-        collection = db[MONGO_COLLECTION]
-        
-        contacts_to_insert = []
-        
+
+        # Group contacts by source
+        contacts_by_source = {}
+
         # Process each show in batch_data
         for show_name, contact_list in batch_data.items():
             for contact in contact_list:
-                # Extract data from the contact array
-                # Array structure: [venue, date, email, source, time, type, firstname, lastname, tickets, phone, enhanced_fields...]
-                if len(contact) >= 9:  # Ensure we have at least the required fields
+                if len(contact) >= 9:
                     contact_doc = {
                         "venue": contact[0],
                         "show_date": contact[1],
@@ -131,75 +133,75 @@ def batch_add_contacts_to_mongodb(batch_data):
                         "created_at": datetime.utcnow(),
                         "updated_at": datetime.utcnow()
                     }
-                    
-                    # Add enhanced fields if available (indices 10+)
+
                     enhanced_field_names = [
                         "discount_code", "total_price", "order_id", "transaction_id",
                         "customer_id", "payment_method", "entry_code", "notes"
                     ]
-                    
                     for i, field_name in enumerate(enhanced_field_names, start=10):
                         if len(contact) > i and contact[i] is not None:
                             contact_doc[field_name] = contact[i]
-                    
-                    # Check if contact already exists to avoid duplicates
-                    # Use transaction_id or order_id for better duplicate detection
-                    duplicate_query = {}
-                    
-                    # Primary check: transaction_id (most reliable)
-                    if len(contact) > 13 and contact[13]:  # transaction_id is at index 13
-                        duplicate_query["transaction_id"] = contact[13]
-                    # Secondary check: order_id (fallback)
-                    elif len(contact) > 12 and contact[12]:  # order_id is at index 12
-                        duplicate_query["order_id"] = contact[12]
-                    # Fallback to old method for legacy data
-                    else:
-                        duplicate_query = {
-                            "email": contact_doc["email"],
-                            "show_date": contact_doc["show_date"],
-                            "venue": contact_doc["venue"]
-                        }
-                    
-                    existing_contact = collection.find_one(duplicate_query)
-                    
-                    if not existing_contact:
-                        contacts_to_insert.append(contact_doc)
-                        logger.debug(f"New contact: {contact_doc['email']} for {contact_doc['venue']} on {contact_doc['show_date']}")
-                    else:
-                        logger.debug(f"Updating existing contact: {contact_doc['email']} (found via {list(duplicate_query.keys())[0]})")
-                        # Update existing contact with all fields including enhanced ones
-                        update_fields = {
-                            "updated_at": datetime.utcnow(),
-                            "show_datetime": parse_show_date_with_year(contact_doc["show_date"]),
-                            "tickets": contact_doc["tickets"],
-                            "phone": contact_doc["phone"],
-                            "source": contact_doc["source"],
-                            "show_time": contact_doc["show_time"],
-                            "ticket_type": contact_doc["ticket_type"],
-                            "first_name": contact_doc["first_name"],
-                            "last_name": contact_doc["last_name"]
-                        }
-                        
-                        # Add enhanced fields if they exist (for new data structure)
-                        enhanced_fields = ["discount_code", "total_price", "order_id", "transaction_id", 
-                                         "customer_id", "payment_method", "entry_code", "notes"]
-                        
-                        for field in enhanced_fields:
-                            if field in contact_doc and contact_doc[field] is not None:
-                                update_fields[field] = contact_doc[field]
-                        
-                        collection.update_one(
-                            duplicate_query,  # Use the same query that found the duplicate
-                            {"$set": update_fields}
-                        )
-        
-        # Insert new contacts in batch
-        if contacts_to_insert:
-            result = collection.insert_many(contacts_to_insert)
-            print(f"Successfully inserted {len(result.inserted_ids)} new contacts to MongoDB")
-        else:
-            print("No new contacts to insert")
-            
+
+                    # Determine collection name
+                    source_name = contact_doc["source"] if contact_doc["source"] else "contacts"
+                    if not isinstance(source_name, str) or not source_name.strip():
+                        source_name = "contacts"
+                    source_name = source_name.strip()
+
+                    if source_name not in contacts_by_source:
+                        contacts_by_source[source_name] = []
+                    contacts_by_source[source_name].append(contact_doc)
+
+        # Insert contacts by source
+        for source_name, contacts_to_insert in contacts_by_source.items():
+            collection = db[source_name]
+            inserted_count = 0
+            for contact_doc in contacts_to_insert:
+                # Build duplicate query
+                duplicate_query = {}
+                if "transaction_id" in contact_doc and contact_doc["transaction_id"]:
+                    duplicate_query["transaction_id"] = contact_doc["transaction_id"]
+                elif "order_id" in contact_doc and contact_doc["order_id"]:
+                    duplicate_query["order_id"] = contact_doc["order_id"]
+                else:
+                    duplicate_query = {
+                        "email": contact_doc["email"],
+                        "show_date": contact_doc["show_date"],
+                        "venue": contact_doc["venue"],
+                        "first_name": contact_doc["first_name"],
+                        "last_name": contact_doc["last_name"]
+                    }
+                existing_contact = collection.find_one(duplicate_query)
+                if not existing_contact:
+                    collection.insert_one(contact_doc)
+                    inserted_count += 1
+                    logger.debug(f"New contact: {contact_doc['email']} for {contact_doc['venue']} on {contact_doc['show_date']} in collection {source_name}")
+                else:
+                    logger.debug(f"Updating existing contact: {contact_doc['email']} (found via {list(duplicate_query.keys())[0]}) in collection {source_name}")
+                    update_fields = {
+                        "updated_at": datetime.utcnow(),
+                        "show_datetime": parse_show_date_with_year(contact_doc["show_date"]),
+                        "tickets": contact_doc["tickets"],
+                        "phone": contact_doc["phone"],
+                        "source": contact_doc["source"],
+                        "show_time": contact_doc["show_time"],
+                        "ticket_type": contact_doc["ticket_type"],
+                        "first_name": contact_doc["first_name"],
+                        "last_name": contact_doc["last_name"]
+                    }
+                    enhanced_fields = ["discount_code", "total_price", "order_id", "transaction_id", 
+                                     "customer_id", "payment_method", "entry_code", "notes"]
+                    for field in enhanced_fields:
+                        if field in contact_doc and contact_doc[field] is not None:
+                            update_fields[field] = contact_doc[field]
+                    collection.update_one(
+                        duplicate_query,
+                        {"$set": update_fields}
+                    )
+            if inserted_count:
+                print(f"Successfully inserted {inserted_count} new contacts to MongoDB collection '{source_name}'")
+            else:
+                print(f"No new contacts to insert for collection '{source_name}'")
     except Exception as e:
         print(f"Error adding contacts to MongoDB: {str(e)}")
     finally:

@@ -157,37 +157,6 @@ def is_processed_email(message_id, csv_filename, force_refresh=False):
         if 'client' in locals():
             client.close()
 
-def mark_email_processed(message_data):
-    """Mark email as processed in MongoDB."""
-    if not MONGO_URI:
-        return
-        
-    try:
-        client = MongoClient(MONGO_URI)
-        db = client[MONGO_DB]
-        collection = db[MONGO_COLLECTION]
-        collection.insert_one(message_data)
-    except Exception as e:
-        logger.error(f"Error marking email as processed: {str(e)}")
-    finally:
-        if 'client' in locals():
-            client.close()
-
-def store_domore_transaction(transaction_data):
-    """Store transaction data for tracking."""
-    if not MONGO_URI:
-        return
-        
-    try:
-        client = MongoClient(MONGO_URI)
-        db = client[MONGO_DB]
-        collection = db[MONGO_SALES_COLLECTION]
-        collection.insert_one(transaction_data)
-    except Exception as e:
-        logger.error(f"Error storing transaction: {str(e)}")
-    finally:
-        if 'client' in locals():
-            client.close()
 
 def extract_button_url(html_content):
     """Extract the 'I RECEIVED THIS LIST' button URL from email HTML."""
@@ -418,27 +387,7 @@ def getEmails(days=None, mongo_only=False, force_refresh=False, debug_only=False
                     logger.info(f"Processed {csv_guests_processed} guests from {csv_filename}")
                     total_processed += csv_guests_processed
 
-                    # Mark email as processed and store transaction
-                    if not force_refresh:
-                        mark_email_processed({
-                            "messageId": msg_id,
-                            "csvFilename": csv_filename,
-                            "subject": subject,
-                            "venue": venue_name,
-                            "showDate": show_date_with_time,
-                            "guestsProcessed": csv_guests_processed,
-                            "timestamp": datetime.utcnow()
-                        })
-                        
-                        store_domore_transaction({
-                            "messageId": msg_id,
-                            "csvFilename": csv_filename,
-                            "subject": subject,
-                            "venue": venue_name,
-                            "showDate": show_date_with_time,
-                            "totalGuests": csv_guests_processed,
-                            "timestamp": datetime.utcnow()
-                        })
+                    # ...existing code...
 
                 except Exception as e:
                     logger.error(f"Error processing CSV data from {csv_filename}: {e}")
