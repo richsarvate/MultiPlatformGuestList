@@ -12,6 +12,9 @@ import hashlib
 from addContactsToMongoDB import batch_add_contacts_to_mongodb, save_comprehensive_data_to_mongodb
 from getVenueAndDate import get_city, append_year_to_show_date
 
+# Load project configuration
+config = load_project_config()
+
 # Setup logging
 logger = logging.getLogger(__name__)
 
@@ -41,15 +44,18 @@ def _get_or_create_sheet(gc, venue):
     """Get existing sheet or create new one for venue"""
     sheet_title = get_city(venue) + "-" + venue
     logger.info(f"Processing sheet: {sheet_title}")
-    
+
+    if config is None:
+        raise ValueError("Project configuration is not loaded (config is None).")
+
     try:
         sheet = gc.open(sheet_title)
         logger.info(f"Found existing sheet: {sheet_title}")
     except gspread.exceptions.SpreadsheetNotFound:
         logger.info(f"Creating new sheet: {sheet_title}")
-        sheet = gc.create(sheet_title, folder_id=config.GUEST_LIST_FOLDER_ID)
+        sheet = gc.create(sheet_title, folder_id=config["GUEST_LIST_FOLDER_ID"])
         logger.info(f"Successfully created sheet: {sheet_title}")
-    
+
     return sheet
 
 def _get_or_create_worksheet(sheet, show_date):
