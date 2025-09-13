@@ -8,7 +8,6 @@ import sys
 from datetime import datetime, timedelta
 from pymongo import MongoClient
 from insertIntoGoogleSheet import insert_data_into_google_sheet
-from addContactsToMongoDB import batch_add_contacts_to_mongodb  # Deprecated legacy path (mongo-only mode removed)
 from addEmailToMailerLite import batch_add_contacts_to_mailerlite
 from getVenueAndDate import get_city, append_year_to_show_date, get_venue, convert_date_from_any_format, format_time
 from getBucketlistCookie import load_cookie, get_new_cookie
@@ -40,18 +39,12 @@ def get_help_flag():
     """Check if help flag is provided."""
     return '--help' in sys.argv or '-h' in sys.argv
 
-def batch_add_contacts_to_mongodb(batch_data):
-    """Deprecated: mongo-only mode removed. Function retained as no-op for backward compatibility."""
-    logger.debug("batch_add_contacts_to_mongodb called but mongo-only mode is removed; skipping.")
 
 
 def get_current_bucketlist_data():
     """Placeholder for current Bucketlist data retrieval"""
     pass
 
-def check_mongo_only_flag():
-    """Deprecated: mongo-only flag removed; always returns False."""
-    return False
 
 def check_force_refresh_flag():
     """Check if --force-refresh flag is present in command line arguments"""
