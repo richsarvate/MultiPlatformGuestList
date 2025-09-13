@@ -207,3 +207,56 @@ def batch_add_contacts_to_mongodb(batch_data):
     finally:
         if 'client' in locals():
             client.close()
+
+def save_comprehensive_data_to_mongodb(guest_data):
+    """Public wrapper moved from insertIntoGoogleSheet to centralize Mongo save logic."""
+    logger.info(f"=== DEBUG: Starting MongoDB save for {len(guest_data)} guests ===")
+    try:
+        batch_data = {}
+        for guest in guest_data:
+            venue = guest.get('venue', '')
+            show_date = guest.get('show_date', '')
+            show_key = f"{venue} - {show_date}"
+            if show_key not in batch_data:
+                batch_data[show_key] = []
+            guest_array = [
+                venue,
+                show_date,
+                guest.get('email', ''),
+                guest.get('source', ''),
+                # Time extraction kept lightweight here to avoid dependency loop
+                _extract_time_from_date(show_date) if isinstance(show_date, str) else '',
+                guest.get('ticket_type', 'GA'),
+                guest.get('first_name', ''),
+                guest.get('last_name', ''),
+                guest.get('tickets', 1),
+                guest.get('phone', ''),
+                guest.get('discount_code'),
+                guest.get('total_price'),
+                guest.get('order_id'),
+                guest.get('transaction_id'),
+                guest.get('customer_id'),
+                guest.get('payment_method'),
+                guest.get('entry_code'),
+                guest.get('notes')
+            ]
+            batch_data[show_key].append(guest_array)
+        logger.info(f"Converted to {len(batch_data)} show groupings")
+        batch_add_contacts_to_mongodb(batch_data)
+        logger.info("=== DEBUG: batch_add_contacts_to_mongodb completed successfully ===")
+    except Exception as e:
+        logger.error(f"=== DEBUG: MongoDB save operation FAILED: {e} ===")
+        raise
+
+def _extract_time_from_date(show_date):
+    import re
+    time_patterns = [
+        r'(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm))',
+        r'(\d{1,2}(?:AM|PM|am|pm))',
+        r'(\d{2}:\d{2})'
+    ]
+    for pattern in time_patterns:
+        m = re.search(pattern, show_date)
+        if m:
+            return m.group(1)
+    return ''
