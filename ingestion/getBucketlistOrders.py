@@ -8,7 +8,7 @@ import sys
 from datetime import datetime, timedelta
 from pymongo import MongoClient
 from insertIntoGoogleSheet import insert_data_into_google_sheet
-from addContactsToMongoDB import batch_add_contacts_to_mongodb
+from addContactsToMongoDB import batch_add_contacts_to_mongodb  # Deprecated legacy path (mongo-only mode removed)
 from addEmailToMailerLite import batch_add_contacts_to_mailerlite
 from getVenueAndDate import get_city, append_year_to_show_date, get_venue, convert_date_from_any_format, format_time
 from getBucketlistCookie import load_cookie, get_new_cookie
@@ -36,75 +36,13 @@ except IOError as e:
     )
 logger = logging.getLogger(__name__)
 
-def show_help():
-    """Display help message for command line usage."""
-    help_text = """
-Bucketlist Orders Integration Script
-
-USAGE:
-    python getBucketlistOrders.py [OPTIONS]
-
-OPTIONS:
-    --mongo-only      Save data only to MongoDB, skip Google Sheets
-    --force-refresh   Bypass duplicate checks and reimport all data
-    --help           Show this help message
-
-EXAMPLES:
-    python getBucketlistOrders.py
-    python getBucketlistOrders.py --mongo-only
-    python getBucketlistOrders.py --force-refresh
-    python getBucketlistOrders.py --mongo-only --force-refresh
-
-DESCRIPTION:
-    Fetches order data from Bucketlist API and processes guest information.
-    
-    --mongo-only: Saves data directly to MongoDB without updating Google Sheets.
-                 Useful for bulk historical imports or when Google Sheets sync is not needed.
-    
-    --force-refresh: Ignores existing transaction records and processes all orders.
-                    Useful for complete data refresh or fixing data inconsistencies.
-                    Should be used with caution as it may create duplicates.
-
-NOTES:
-    - Requires valid Bucketlist authentication cookie
-    - Uses MongoDB for duplicate detection and data storage
-    - Automatically handles venue mapping and time formatting
-    - Supports batch processing for improved performance
-    """
-    print(help_text)
-
 def get_help_flag():
     """Check if help flag is provided."""
     return '--help' in sys.argv or '-h' in sys.argv
 
 def batch_add_contacts_to_mongodb(batch_data):
-    """
-    Add contacts to MongoDB in batch format compatible with mongo-only mode.
-    batch_data format: {"venue - date": [guest_arrays]}
-    """
-    try:
-        from addContactsToMongoDB import batch_add_contacts_to_mongodb as mongo_batch_add
-        
-        # Convert the batch_data to the format expected by the MongoDB function
-        # The MongoDB function expects: {"venue": [guest_arrays]}
-        # But we have: {"venue - date": [guest_arrays]}
-        
-        # Since the MongoDB function groups by venue internally, we can convert our format
-        mongo_batch_data = {}
-        for show_key, guests in batch_data.items():
-            # Extract venue from "venue - date" format
-            venue = show_key.split(" - ")[0]
-            if venue not in mongo_batch_data:
-                mongo_batch_data[venue] = []
-            mongo_batch_data[venue].extend(guests)
-        
-        logger.info(f"Converting {len(batch_data)} show groupings to {len(mongo_batch_data)} venue groupings")
-        mongo_batch_add(mongo_batch_data)
-        
-    except ImportError as e:
-        logger.error(f"Failed to import addContactsToMongoDB: {e}")
-    except Exception as e:
-        logger.error(f"Error in batch MongoDB operation: {e}")
+    """Deprecated: mongo-only mode removed. Function retained as no-op for backward compatibility."""
+    logger.debug("batch_add_contacts_to_mongodb called but mongo-only mode is removed; skipping.")
 
 
 def get_current_bucketlist_data():
@@ -112,8 +50,8 @@ def get_current_bucketlist_data():
     pass
 
 def check_mongo_only_flag():
-    """Check if --mongo-only flag is present in command line arguments"""
-    return '--mongo-only' in sys.argv
+    """Deprecated: mongo-only flag removed; always returns False."""
+    return False
 
 def check_force_refresh_flag():
     """Check if --force-refresh flag is present in command line arguments"""
@@ -124,22 +62,19 @@ def show_help():
     help_text = """
 Bucketlist Orders Sync Script
 
-Usage: python3 getBucketlistOrders.py [--mongo-only] [--force-refresh] [--help]
+Usage: python3 getBucketlistOrders.py [--force-refresh] [--help]
 
 Options:
-  --mongo-only      Skip Google Sheets integration, only save to MongoDB
   --force-refresh   Force refresh all data, bypass duplicate checks
                     (Use this for historical data import)
   --help, -h        Show this help message
 
 Examples:
   python3 getBucketlistOrders.py                    # Normal sync (new data only)
-  python3 getBucketlistOrders.py --mongo-only       # MongoDB only, new data
   python3 getBucketlistOrders.py --force-refresh    # Force refresh all data
-  python3 getBucketlistOrders.py --mongo-only --force-refresh  # Historical import
 
 For historical data import from beginning of year, use:
-  python3 getBucketlistOrders.py --mongo-only --force-refresh
+    python3 getBucketlistOrders.py --force-refresh
 """
     print(help_text)
 
@@ -267,35 +202,23 @@ def get_guest_list(session, experience_id, event_id, cookie):
                 return [], new_cookie
             cookie = new_cookie
         data = response.json()
-        guests = [{
-            "customerName": order["customerName"],
-            "customerEmail": order["customerEmail"],
-            "customerPhone": order["customerPhone"],
-            "ticketType": ticket["ticketType"],
-            "entryCode": ticket["entryCode"],
-            "quantity": sum(li["quantity"] for li in order["lineItems"] if li["type"] == "ITEM")
-        } for order in data.get("orders", []) for ticket in order["tickets"]]
+        guests = []
+        for order in data.get("orders", []):
+            purchase_time = order.get("createdAt") or order.get("created_at")
+            for ticket in order.get("tickets", []):
+                guests.append({
+                    "customerName": order.get("customerName"),
+                    "customerEmail": order.get("customerEmail"),
+                    "customerPhone": order.get("customerPhone"),
+                    "ticketType": ticket.get("ticketType"),
+                    "entryCode": ticket.get("entryCode"),
+                    "quantity": sum(li.get("quantity", 0) for li in order.get("lineItems", []) if li.get("type") == "ITEM"),
+                    "purchaseTime": purchase_time
+                })
         return guests, cookie
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching guest list: {str(e)}")
         return [], cookie
-
-def is_new_transaction(event_id, transaction_id, customer_email):
-    try:
-        client = MongoClient(MONGO_URI)
-        db = client[MONGO_DB]
-        collection = db[MONGO_SALES_COLLECTION]
-        exists = collection.find_one({
-            "eventId": event_id,
-            "transactionId": transaction_id,
-            "customerEmail": customer_email
-        })
-        return not exists
-    except Exception as e:
-        logger.error(f"Error checking transactionId: {str(e)}")
-        return False
-    finally:
-        client.close()
 
 def store_transaction(transaction_data):
     try:
@@ -364,11 +287,9 @@ def main():
         return
     
     # Check flags
-    mongo_only = check_mongo_only_flag()
+    mongo_only = False  # mongo-only mode removed
     force_refresh = check_force_refresh_flag()
     
-    if mongo_only:
-        logger.info("Running in MONGO-ONLY mode - skipping Google Sheets integration")
     if force_refresh:
         logger.info("Running in FORCE-REFRESH mode - bypassing duplicate checks")
     
@@ -406,7 +327,8 @@ def main():
             show_date_readable = convert_date_from_any_format(show_date)
             show_time = format_time(start_time.strftime("%I:%M %p"))
 
-            if show_time.strip().lower() == "8:30pm" and get_venue(event_name).strip().lower() == "palace":
+            venue_name = get_venue(event_name)
+            if show_time.strip().lower() == "8:30pm" and venue_name and venue_name.strip().lower() == "palace":
                 show_time = "9pm"
 
             show_date_with_time = f"{show_date_readable} {show_time}"
@@ -431,17 +353,11 @@ def main():
                 venue = get_venue(event_name)
                 logger.info(f"Processing {event_name} at {venue} on {show_date_with_time} - {len(guests)} guests")
                 
-                # Initialize batch_data structure for MongoDB-only mode
-                if mongo_only:
-                    show_key = f"{venue} - {show_date_with_time}"
-                    if show_key not in batch_data:
-                        batch_data[show_key] = []
-                else:
-                    # Original structure for Google Sheets
-                    if venue not in batch_data:
-                        batch_data[venue] = {}
-                    if show_date_with_time not in batch_data[venue]:
-                        batch_data[venue][show_date_with_time] = []
+                # Initialize unified batch_data structure (venue -> date -> guests)
+                if venue not in batch_data:
+                    batch_data[venue] = {}
+                if show_date_with_time not in batch_data[venue]:
+                    batch_data[venue][show_date_with_time] = []
 
                 event_guests_processed = 0
                 for guest in guests:
@@ -483,19 +399,16 @@ def main():
                         guest.get("customerPhone", ""),
                         # Enhanced fields for MongoDB consistency
                         None,  # discount_code
-                        total_price,  # total_price (now calculated!)
+                        total_price,  # total_price
                         None,  # order_id
                         transaction_id,  # transaction_id
                         guest["customerEmail"],  # customer_id
                         "Bucketlist",  # payment_method
                         transaction_id,  # entry_code
-                        f"Ticket Type: {ticket_type}"  # notes
+                        f"Ticket Type: {ticket_type}; PurchaseTime: {guest.get('purchaseTime') or 'N/A'}"  # notes with purchase time
                     ]
 
-                    if mongo_only:
-                        batch_data[show_key].append(guest_array)
-                    else:
-                        batch_data[venue][show_date_with_time].append(guest_array)
+                    batch_data[venue][show_date_with_time].append(guest_array)
                     
                     # Store transaction data for tracking
                     if not force_refresh:  # Only store if not in force refresh mode to avoid duplicates
@@ -519,18 +432,11 @@ def main():
                 logger.info(f"Event {event_name}: processed {event_guests_processed} guests")
 
     if batch_data:
-        logger.info(f"Processing {total_guests_processed} total guests from {total_events_processed} events")
-        
-        if mongo_only:
-            # Save directly to MongoDB using the consolidated structure
-            batch_add_contacts_to_mongodb(batch_data)
-            logger.info("Successfully saved data to MongoDB only")
-        else:
-            # Use original Google Sheets process
-            for venue in batch_data:
-                for date in batch_data[venue]:
-                    insert_data_into_google_sheet({venue: batch_data[venue][date]})
-            logger.info("Successfully processed all Bucketlist orders")
+        logger.info(f"Processing {total_guests_processed} total guests from {total_events_processed} events via unified pipeline")
+        for venue in batch_data:
+            for date in batch_data[venue]:
+                insert_data_into_google_sheet({venue: batch_data[venue][date]})
+        logger.info("Successfully processed all Bucketlist orders")
     else:
         logger.info("No new sales to update.")
 

@@ -312,6 +312,23 @@ def insert_data_into_google_sheet(batch_data):
                     "tickets": int(row[8]) if row[8] else 1,
                     "ticket_type": row[5] if len(row) > 5 else "GA"
                 }
+                # Preserve phone if present
+                if len(row) > 9 and row[9]:
+                    guest_dict["phone"] = row[9]
+                # Preserve total_price (index 11 per enhanced array spec)
+                if len(row) > 11 and row[11] is not None:
+                    guest_dict["total_price"] = row[11]
+                # Extract purchase time from notes pattern if present (notes at index 17)
+                if len(row) > 17 and isinstance(row[17], str) and "PurchaseTime:" in row[17]:
+                    try:
+                        # Split on 'PurchaseTime:' and take remainder
+                        pt_part = row[17].split("PurchaseTime:", 1)[1].strip()
+                        # Remove any leading separators
+                        pt_part = pt_part.lstrip(';').strip()
+                        if pt_part and pt_part.upper() != 'N/A':
+                            guest_dict["purchase_time"] = pt_part
+                    except Exception:
+                        pass
                 guest_data.append(guest_dict)
             else:
                 logger.warning(f"Skipping malformed row with {len(row)} elements: {row}")
