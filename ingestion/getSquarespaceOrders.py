@@ -3,7 +3,7 @@ import requests
 import logging
 from datetime import datetime, timedelta
 from insertIntoGoogleSheet import insert_guest_data_efficient
-from getVenueAndDate import get_venue, extract_venue_name, extract_date, extract_time
+from getVenueAndDate import get_venue, extract_venue_name, extract_date, extract_time, get_venue_filter, filter_guests_by_venue
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -216,6 +216,11 @@ def process_squarespace_orders():
     if all_guests:
         logger.info(f"Processing {len(all_guests)} guests total")
         
+        # Apply venue filter if specified
+        venue_filter = get_venue_filter()
+        if venue_filter:
+            all_guests = filter_guests_by_venue(all_guests, venue_filter)
+        
         # Check for debug-only mode
         debug_only = check_debug_only_flag()
         
@@ -252,15 +257,18 @@ def process_squarespace_orders():
 if __name__ == "__main__":
     print(f"Squarespace Orders Sync - {datetime.utcnow().isoformat()[:-6]}Z")
     if '--help' in sys.argv or '-h' in sys.argv:
-        print("\nUsage: python3 getSquarespaceOrders.py [interval_minutes] [--mongo-only] [--debug-only]")
+        print("\nUsage: python3 getSquarespaceOrders.py [interval_minutes] [--mongo-only] [--debug-only] [--venue VENUE_NAME]")
         print("\nOptions:")
         print("  interval_minutes  Time interval to fetch orders (default: from config)")
         print("  --mongo-only      Save data only to MongoDB, skip Google Sheets")
         print("  --debug-only      Show order data without inserting to database or sheets")
+        print("  --venue VENUE     Process only tickets from specified venue (case-insensitive)")
         print("\nExamples:")
-        print("  python3 getSquarespaceOrders.py 60          # Fetch last 60 minutes")
-        print("  python3 getSquarespaceOrders.py 10080 --mongo-only  # Fetch last week, MongoDB only")
-        print("  python3 getSquarespaceOrders.py 1440 --debug-only   # Show last 24 hours data without inserting")
+        print("  python3 getSquarespaceOrders.py 60                    # Fetch last 60 minutes")
+        print("  python3 getSquarespaceOrders.py 10080 --mongo-only    # Fetch last week, MongoDB only")
+        print("  python3 getSquarespaceOrders.py 1440 --debug-only     # Show last 24 hours data without inserting")
+        print("  python3 getSquarespaceOrders.py 180 --venue rabbitbox # Process only RabbitBox tickets from last 3 hours")
+        print("  python3 getSquarespaceOrders.py 1440 --venue palace --debug-only # Debug Palace tickets from last 24 hours")
         sys.exit(0)
     
     process_squarespace_orders()

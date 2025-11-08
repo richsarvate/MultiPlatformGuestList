@@ -266,3 +266,35 @@ def extract_time(product_name):
         return match.group(0).strip().lower()
     else:
         return None
+
+def get_venue_filter():
+    """Check if --venue flag is present and return the specified venue name"""
+    import sys
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    for i, arg in enumerate(sys.argv):
+        if arg == '--venue' and i + 1 < len(sys.argv):
+            venue_name = sys.argv[i + 1]
+            logger.info(f"Filtering for venue: {venue_name}")
+            return venue_name.lower()  # Convert to lowercase for case-insensitive matching
+    return None
+
+def filter_guests_by_venue(guests, venue_filter):
+    """Filter guests list to only include specified venue"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    if not venue_filter:
+        return guests
+    
+    filtered_guests = []
+    original_count = len(guests)
+    
+    for guest in guests:
+        guest_venue = guest.get('venue', '').lower() if guest.get('venue') else ''
+        if venue_filter in guest_venue or guest_venue in venue_filter:
+            filtered_guests.append(guest)
+    
+    logger.info(f"Venue filter '{venue_filter}': {len(filtered_guests)} of {original_count} guests match")
+    return filtered_guests
