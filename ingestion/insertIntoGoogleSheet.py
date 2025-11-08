@@ -53,7 +53,7 @@ def _get_or_create_sheet(gc, venue):
         logger.info(f"Found existing sheet: {sheet_title}")
     except gspread.exceptions.SpreadsheetNotFound:
         logger.info(f"Creating new sheet: {sheet_title}")
-        sheet = gc.create(sheet_title, folder_id=config["GUEST_LIST_FOLDER_ID"])
+        sheet = gc.create(sheet_title, folder_id=config["guest_list_folder_id"])
         logger.info(f"Successfully created sheet: {sheet_title}")
 
     return sheet
