@@ -45,10 +45,30 @@ def is_cookie_valid(cookie):
     headers = HEADERS.copy()
     headers["Cookie"] = cookie
     try:
-        response = requests.get(f"{BASE_URL}/v2/152/experiences", headers=headers, timeout=10)
+        # Use the _data parameter to get JSON response instead of HTML
+        import urllib.parse
+        data_param = urllib.parse.quote("routes/v2/$partnerId/experiences/index")
+        response = requests.get(f"{BASE_URL}/v2/152/experiences/?_data={data_param}", headers=headers, timeout=10)
+        
         if response.status_code == 200:
-            logger.info("Cookie is valid")
-            return True
+            # Verify we got JSON, not HTML
+            content_type = response.headers.get("Content-Type", "")
+            if "application/json" in content_type:
+                # Double-check the response has expected structure
+                try:
+                    data = response.json()
+                    if "experiences" in data:
+                        logger.info("Cookie is valid")
+                        return True
+                    else:
+                        logger.warning("Cookie returned JSON but missing 'experiences' key")
+                        return False
+                except ValueError:
+                    logger.warning("Cookie validation: Failed to parse JSON response")
+                    return False
+            else:
+                logger.warning(f"Cookie validation: Got {content_type} instead of JSON")
+                return False
         else:
             logger.warning(f"Cookie invalid: HTTP {response.status_code}")
             return False
@@ -210,7 +230,19 @@ def get_new_cookie():
     try:
         logger.info(f"Submitting verification code {code} to {verify_url}")
         session = requests.Session()
-        response = session.post(verify_url, headers=HEADERS, data=data, allow_redirects=True, timeout=10)
+        
+        # Try JSON first (new API format)
+        headers_json = HEADERS.copy()
+        headers_json["Content-Type"] = "application/json"
+        response = session.post(verify_url, headers=headers_json, json=data, allow_redirects=True, timeout=10)
+        
+        # If JSON fails with 400, try form data (old API format)
+        if response.status_code == 400:
+            logger.warning("JSON submission failed with 400, trying form data")
+            headers_form = HEADERS.copy()
+            headers_form["Content-Type"] = "application/x-www-form-urlencoded"
+            response = session.post(verify_url, headers=headers_form, data=data, allow_redirects=True, timeout=10)
+        
         response.raise_for_status()
         
         cookie = session.cookies.get("BLT_partner_session")

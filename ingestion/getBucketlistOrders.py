@@ -8,7 +8,6 @@ import sys
 from datetime import datetime, timedelta
 from pymongo import MongoClient
 from insertIntoGoogleSheet import insert_data_into_google_sheet
-from addEmailToMailerLite import batch_add_contacts_to_mailerlite
 from getVenueAndDate import get_city, append_year_to_show_date, get_venue, convert_date_from_any_format, format_time
 from getBucketlistCookie import load_cookie, get_new_cookie
 import uuid
