@@ -175,13 +175,14 @@ def fetch_verification_code():
 def get_new_cookie():
     """Fetch a new BLT_partner_session cookie and save to file."""
     logger.info("Starting process to fetch new BLT cookie")
-    
+    # Use a single session for the whole login flow so cookies (ALB etc.) are preserved
+    session = requests.Session()
     # Submit email to get login code and capture redirect URL
     login_url = f"{BASE_URL}/login/email"
     data = {"email": EMAIL, "redirectTo": "/"}
     try:
         logger.info(f"Submitting email {EMAIL} to {login_url}")
-        response = requests.post(login_url, headers=HEADERS, data=data, allow_redirects=False, timeout=10)
+        response = session.post(login_url, headers=HEADERS, data=data, allow_redirects=False, timeout=10)
         if response.status_code in (301, 302, 303, 307, 308):
             redirect_url = response.headers.get("Location")
             full_redirect_url = urljoin(BASE_URL, redirect_url)
@@ -229,12 +230,18 @@ def get_new_cookie():
     }
     try:
         logger.info(f"Submitting verification code {code} to {verify_url}")
-        session = requests.Session()
         
-        # Try JSON first (new API format)
-        headers_json = HEADERS.copy()
-        headers_json["Content-Type"] = "application/json"
-        response = session.post(verify_url, headers=headers_json, json=data, allow_redirects=True, timeout=10)
+        # Try form data first (original format that worked until Nov 22)
+        headers_form = HEADERS.copy()
+        headers_form["Content-Type"] = "application/x-www-form-urlencoded"
+        response = session.post(verify_url, headers=headers_form, data=data, allow_redirects=True, timeout=10)
+        
+        # If form data fails with 400, try JSON (new API format)
+        if response.status_code == 400:
+            logger.warning("Form data submission failed with 400, trying JSON")
+            headers_json = HEADERS.copy()
+            headers_json["Content-Type"] = "application/json"
+            response = session.post(verify_url, headers=headers_json, json=data, allow_redirects=True, timeout=10)
         
         # If JSON fails with 400, try form data (old API format)
         if response.status_code == 400:
