@@ -1,0 +1,85 @@
+{
+  "tickets": [
+    {
+      "ticket": {
+        "confirmationMessage": "Hey ${first_name}! Your purchase for ${quantity} for ${eventName} is confirmed!\n\nHere are the event details:\n\ud83d\udcc6 ${eventDate}\n\u23f0 ${eventTime} (doors open at 9pm)\n\ud83d\udccd ${eventLocation}\n\nThese tix are nonrefundable - please reach out to ${supportEmail} if you have any questions.\n\nHave fun! We'll text you after the event to see how it was.\n\n\ud83c\udf9f\ufe0f Your tickets are linked below:\n${webticket_url}",
+        "emailConfirmationMessage": "Hey ${first_name}! Your purchase for ${quantity} for ${eventName} is confirmed!\n\nHere are the event details:\n\ud83d\udcc6 ${eventDate}\n\u23f0 ${eventTime}\n\ud83d\udccd ${eventLocation}\n\nThese tix are nonrefundable - please reach out to ${supportEmail} if you have any questions.\n\nHave fun! We'll text you after the event to see how it was.",
+        "eventDate": "2025-12-06T21:30:00.000-08:00",
+        "expiresAt": "2025-12-06T21:30:00.000-08:00",
+        "percentRemaining": 100,
+        "remainingCount": 120,
+        "serviceFeeCents": 399,
+        "tag": "General Admission",
+        "ticketName": "General Admission",
+        "ticketType": "single_date",
+        "ticketUnit": "person",
+        "totalCount": 120,
+        "totalSalesCents": 0,
+        "unitPriceCents": 3500,
+        "uuid": "K82WKKLKzkEy"
+      },
+      "ticketedEvent": {
+        "description": "We\u2019re taking over an intimate venue in North Beach for a night of laugh-until-you-cry comedy - featuring talent you\u2019ve seen on Netflix, Comedy Central and HBO.\n\nMust be 21+ to attend \nTicket sales are final, there are no refunds",
+        "discountPercentage": 0,
+        "identifier": "nudge-exclusive-comedy-show",
+        "liveViewData": {
+          "viewCount": 0,
+          "viewerUsers": []
+        },
+        "locationString": "The Lost Church",
+        "locationUrl": "https://www.google.com/maps/place/?q=place_id:ChIJ6VB1eCR-j4ARxMVVkBiazeA",
+        "name": "The Setup Underground Comedy Show",
+        "partnerName": "The Setup",
+        "posterImageUrl": "https://d2fqe3vzpyzs1r.cloudfront.net/original/EzHTPTLHJqbi9BXh-upload.jpeg",
+        "programId": 1,
+        "supportEmail": "info@setupcomedy.com",
+        "supportString": "If you have any support questions, please contact The Setup at info@setupcomedy.com.",
+        "userInterestTags": [
+          "comedy"
+        ],
+        "uuid": "42fYzd"
+      }
+    },
+    {
+      "ticket": {
+        "confirmationMessage": "Hey ${first_name}! Your purchase for ${quantity} for ${eventName} is confirmed!\n\nHere are the event details:\n\ud83d\udcc6 ${eventDate}\n\u23f0 ${eventTime} (doors open at 6:30pm)\n\ud83d\udccd ${eventLocation}\n\nThese tix are nonrefundable - please reach out to ${supportEmail} if you have any questions.\n\nHave fun! We'll text you after the event to see how it was.\n\n\ud83c\udf9f\ufe0f Your tickets are linked below:\n${webticket_url}",
+        "emailConfirmationMessage": "Hey ${first_name}! Your purchase for ${quantity} for ${eventName} is confirmed!\n\nHere are the event details:\n\ud83d\udcc6 ${eventDate}\n\u23f0 ${eventTime}\n\ud83d\udccd ${eventLocation}\n\nThese tix are nonrefundable - please reach out to ${supportEmail} if you have any questions.\n\nHave fun! We'll text you after the event to see how it was.",
+        "eventDate": "2025-12-06T19:00:00.000-08:00",
+        "expiresAt": "2025-12-06T19:00:00.000-08:00",
+        "percentRemaining": 100,
+        "remainingCount": 120,
+        "serviceFeeCents": 399,
+        "tag": "General Admission",
+        "ticketName": "General Admission",
+        "ticketType": "single_date",
+        "ticketUnit": "person",
+        "totalCount": 120,
+        "totalSalesCents": 0,
+        "unitPriceCents": 3500,
+        "uuid": "6fldoIG1rw58"
+      },
+      "ticketedEvent": {
+        "description": "We\u2019re taking over an intimate venue in North Beach for a night of laugh-until-you-cry comedy - featuring talent you\u2019ve seen on Netflix, Comedy Central and HBO.\n\nMust be 21+ to attend \nTicket sales are final, there are no refunds",
+        "discountPercentage": 0,
+        "identifier": "nudge-exclusive-comedy-show",
+        "liveViewData": {
+          "viewCount": 0,
+          "viewerUsers": []
+        },
+        "locationString": "The Lost Church",
+        "locationUrl": "https://www.google.com/maps/place/?q=place_id:ChIJ6VB1eCR-j4ARxMVVkBiazeA",
+        "name": "The Setup Underground Comedy Show",
+        "partnerName": "The Setup",
+        "posterImageUrl": "https://d2fqe3vzpyzs1r.cloudfront.net/original/EzHTPTLHJqbi9BXh-upload.jpeg",
+        "programId": 1,
+        "supportEmail": "info@setupcomedy.com",
+        "supportString": "If you have any support questions, please contact The Setup at info@setupcomedy.com.",
+        "userInterestTags": [
+          "comedy"
+        ],
+        "uuid": "42fYzd"
+      }
+    }
+  ],
+  "timestamp": "2025-11-09T21:22:28.244Z"
+}

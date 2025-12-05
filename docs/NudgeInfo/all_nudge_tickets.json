@@ -1,0 +1,79 @@
+{
+  "ous2p72OFMcf": {
+    "event_uuid": "jPBK0h",
+    "event_name": "The Setup Speakeasy Comedy Show",
+    "location": "Townhouse Venice",
+    "city": "LA",
+    "ticket_name": "The Setup Speakeasy Comedy Show Venice 11/2"
+  },
+  "3b0xe5YsCKti": {
+    "event_uuid": "jPBK0h",
+    "event_name": "The Setup Speakeasy Comedy Show",
+    "location": "Townhouse Venice",
+    "city": "LA",
+    "ticket_name": "The Setup Speakeasy Comedy Show (6/29) - LA"
+  },
+  "6fldoIG1rw58": {
+    "event_uuid": "42fYzd",
+    "event_name": "The Setup Underground Comedy Show",
+    "location": "The Lost Church",
+    "city": "SF",
+    "ticket_name": "General Admission"
+  },
+  "K82WKKLKzkEy": {
+    "event_uuid": "42fYzd",
+    "event_name": "The Setup Underground Comedy Show",
+    "location": "The Lost Church",
+    "city": "SF",
+    "ticket_name": "General Admission"
+  },
+  "s3EtAakvz463": {
+    "event_uuid": "42fYzd",
+    "event_name": "The Setup Underground Comedy Show",
+    "location": "The Lost Church",
+    "city": "SF",
+    "ticket_name": "The Setup Underground Comedy Show (6/7) - SF"
+  },
+  "5GgKzMvHuOiz": {
+    "event_uuid": "42fYzd",
+    "event_name": "The Setup Underground Comedy Show",
+    "location": "The Lost Church",
+    "city": "SF",
+    "ticket_name": "The Setup Underground Comedy Show (6/7) - SF"
+  },
+  "9BtLNp2bUioq": {
+    "event_uuid": "3oQqKt",
+    "event_name": "Nudge-Exclusive Comedy Show",
+    "location": "Blind Barber Fulton Market",
+    "city": "CHI",
+    "ticket_name": "Setup Comedy Show (7/20, Chicago)"
+  },
+  "8bWm8HDP6u9S": {
+    "event_uuid": "3oQqKt",
+    "event_name": "Nudge-Exclusive Comedy Show",
+    "location": "Blind Barber Fulton Market",
+    "city": "CHI",
+    "ticket_name": "Setup Comedy Show (5/18, Chicago)"
+  },
+  "YlzXYRfYBViB": {
+    "event_uuid": "3oQqKt",
+    "event_name": "Nudge-Exclusive Comedy Show",
+    "location": "Blind Barber Fulton Market",
+    "city": "CHI",
+    "ticket_name": "Setup Comedy Show (5/18, Chicago)"
+  },
+  "AW8Md5SCb2kD": {
+    "event_uuid": "OqzcT1",
+    "event_name": "The Setup at the Rabbit Box Seattle",
+    "location": "rabbitbox",
+    "city": "SEA",
+    "ticket_name": "The Setup at the Rabbit Box Seattle 11/8"
+  },
+  "tX4hjJRE8ino": {
+    "event_uuid": "OqzcT1",
+    "event_name": "The Setup at the Rabbit Box Seattle",
+    "location": "rabbitbox",
+    "city": "SEA",
+    "ticket_name": "The Setup at the Rabbit Box Seattle 11/8"
+  }
+}

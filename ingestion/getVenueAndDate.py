@@ -17,6 +17,10 @@ from zoneinfo import ZoneInfo
 #    return f"{show_date} {year}"
 
 def append_year_to_show_date(show_date):
+    # If year already present (4-digit number), return as-is
+    if re.search(r'\b\d{4}\b', show_date):
+        return show_date
+    
     # Get current date in PST/PDT
     today = datetime.now(ZoneInfo("America/Los_Angeles")).date()
     current_year = today.year
