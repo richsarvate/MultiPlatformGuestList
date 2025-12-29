@@ -124,8 +124,10 @@ def get_experience_ids(session, cookie):
                 return [], new_cookie
             cookie = new_cookie
         data = response.json()
-        experience_ids = [exp["experienceId"] for exp in data.get("experiences", [])]
-        return experience_ids, cookie
+        logger.info(f"Experience API response: {data}")
+        experiences = [{"id": exp["experienceId"], "name": exp.get("experienceName", "")} 
+                      for exp in data.get("experiences", [])]
+        return experiences, cookie
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching experience IDs: {str(e)}")
         return [], cookie
@@ -303,12 +305,14 @@ def main():
     total_events_processed = 0
     total_guests_processed = 0
 
-    for exp_id in active_experiences:
+    for exp_data in active_experiences:
+        exp_id = exp_data["id"]
+        exp_name = exp_data["name"]
         events, cookie = get_event_ids(session, exp_id, cookie)
         if not events:
             continue
         
-        logger.info(f"Experience {exp_id}: found {len(events)} events")
+        logger.info(f"Experience {exp_id} ({exp_name}): found {len(events)} events")
         
         for event in events:
             event_id = event["eventId"]
@@ -343,6 +347,13 @@ def main():
                     logger.debug(f"Price lookup: {ticket_name} = ${price_dollars:.2f}")
                     
                 venue = get_venue(event_name)
+                if not venue:
+                    venue = get_venue(exp_name)
+                
+                if not venue:
+                    logger.error(f"Could not extract venue from event '{event_name}' or experience '{exp_name}'. Skipping.")
+                    continue
+                    
                 logger.info(f"Processing {event_name} at {venue} on {show_date_with_time} - {len(guests)} guests")
                 
                 # Initialize unified batch_data structure (venue -> date -> guests)
