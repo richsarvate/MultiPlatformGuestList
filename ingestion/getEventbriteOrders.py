@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timedelta
 from insertIntoGoogleSheet import insert_guest_data_efficient
 from addContactsToMongoDB import batch_add_contacts_to_mongodb
-from getVenueAndDate import get_venue
+from getVenueAndDate import get_venue, format_time
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -155,15 +155,6 @@ def fetch_event_attendees(event_id):
         logger.error(f"Failed to fetch attendees for event {event_id}. Status code: {response.status_code}")
         return None
 
-def format_time(date_string):
-    """Convert datetime string to formatted time (e.g., '8pm')"""
-    try:
-        date_obj = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S')
-        formatted_time = date_obj.strftime('%I%p').lstrip('0').lower()
-        return formatted_time
-    except ValueError:
-        return "Time Not Found"
-
 def format_date(date_string):
     """Convert datetime string to formatted date (e.g., 'Wednesday July 30th')"""
     try:
@@ -202,7 +193,12 @@ def extract_guest_data_from_order(order, event_details, attendees_data):
     
     event_start = event_details.get('start', {}).get('local', '') if event_details else ''
     event_date = format_date(event_start)
-    event_time = format_time(event_start)
+    # Convert ISO format to "HH:MM AM/PM" format for shared format_time function
+    try:
+        event_start_obj = datetime.strptime(event_start, '%Y-%m-%dT%H:%M:%S')
+        event_time = format_time(event_start_obj.strftime('%I:%M %p'))
+    except ValueError:
+        event_time = "Time Not Found"
     
     # Find attendee details for this order
     ticket_class = "General Admission"
