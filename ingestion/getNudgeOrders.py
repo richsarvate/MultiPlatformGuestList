@@ -11,7 +11,7 @@ from io import StringIO
 from datetime import datetime
 from pymongo import MongoClient
 from insertIntoGoogleSheet import insert_guest_data_efficient
-from getVenueAndDate import get_venue
+from getVenueAndDate import get_venue, format_time
 from shared_config import get_mongo_config
 
 # Ensure we're running from the correct directory
@@ -193,16 +193,8 @@ def transform_purchases(purchases, existing_order_ids, venue_filter=None):
                 else:
                     suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day_num % 10, 'th')
                 year = event_dt.year
-                # Format hour as 7pm, 9pm, etc.
-                hour = event_dt.hour
-                if hour == 0:
-                    time_str = "12am"
-                elif hour < 12:
-                    time_str = f"{hour}am"
-                elif hour == 12:
-                    time_str = "12pm"
-                else:
-                    time_str = f"{hour-12}pm"
+                # Format time using shared function (preserves minutes if not :00)
+                time_str = format_time(event_dt.strftime('%I:%M %p'))
                 
                 show_date_str = f"{day_name} {month_name} {day_num}{suffix} {time_str} {year}"
             except Exception as e:

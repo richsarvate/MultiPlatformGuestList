@@ -68,14 +68,18 @@ def get_venue(string):
   """
 
   # Create a regular expression that matches the names, ignoring uppercase or lowercase.
-  name_regex = re.compile(r'(?i)(valencia|stowaway|palace|citizen|church|Blind Barber Fulton Market|townhouse|rabbitbox)')
+  name_regex = re.compile(r'(?i)(valencia|stowaway|palace|citizen|church|Blind Barber Fulton Market|townhouse|rabbit.*box)')
 
   # Find the first match in the input string.
   match = name_regex.search(string)
 
   # If there is a match, return the name that was found.
   if match:
-    return capitalize_first_letter(match.group())
+    venue = capitalize_first_letter(match.group())
+    # Normalize "Rabbit box" to "Rabbitbox" for consistency
+    if venue.lower() == 'rabbit box':
+      venue = 'Rabbitbox'
+    return venue
 
   # If there is no match, return None.
   else:
